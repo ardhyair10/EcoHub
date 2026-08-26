@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CITIZEN
+  ADMIN_RW
+  B2B_BUYER
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password_hash String
+  role          Role     @default(CITIZEN)
+  eco_points    Int      @default(0)
+  qr_code_id    String   @unique @default(uuid())
+  is_verified   Boolean  @default(false)
+  created_at    DateTime @default(now())
+}
+
+model Otp {
+  id         String   @id @default(uuid())
+  email      String
+  otp_code   String
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@index([email])
+}
