@@ -11,12 +11,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Routes
 const authRoutes = require('./src/routes/authRoutes');
+const wasteCategoryRoutes = require('./src/routes/wasteCategoryRoutes');
+const transactionRoutes = require('./src/routes/transactionRoutes');
+const userRoutes = require('./src/routes/userRoutes');
 
 app.use('/api/auth', authRoutes);
+app.use('/api/waste-categories', wasteCategoryRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to Eco Hub API' });
+  res.json({ message: 'Welcome to Eco Hub API', version: '1.0.0' });
 });
 
 app.listen(port, () => {

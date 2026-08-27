@@ -1,9 +1,7 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { sendOtpEmail } = require('../services/emailService');
-
-const prisma = new PrismaClient();
 
 const generateOtp = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP

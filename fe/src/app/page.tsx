@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Leaf, Recycle, MapPin, BarChart3, ArrowRight } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { HeroCarousel } from "@/components/hero-carousel";
 
 export default function Home() {
   return (
@@ -36,43 +37,7 @@ export default function Home() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative w-full py-24 md:py-32 lg:py-48 overflow-hidden">
-          {/* Background Image with Dark/Light overlays */}
-          <div 
-            className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80')" }}
-          ></div>
-          <div className="absolute inset-0 z-0 bg-white/80 dark:bg-slate-950/90 backdrop-blur-[2px]"></div>
-          
-          <div className="container relative z-10 px-4 md:px-6 mx-auto flex flex-col items-center text-center space-y-10">
-            <div className="inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-bold text-primary shadow-sm backdrop-blur-md uppercase tracking-wider">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-primary mr-3 animate-pulse"></span>
-              SDGs 7, 8, 9 & 11
-            </div>
-            
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-heading font-black tracking-tighter max-w-5xl text-slate-900 dark:text-white leading-[1.1]">
-              Platform Ekonomi Sirkular <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-secondary">Pintar & Berkelanjutan</span>
-            </h1>
-            
-            <p className="mx-auto max-w-[800px] text-xl md:text-2xl font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
-              Ekosistem digital end-to-end yang menghubungkan rumah tangga, titik drop-off (RT/RW), dan industri daur ulang B2B. Ubah sampah menjadi nilai ekonomi.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto pt-4">
-              <Link href="/register" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-white gap-3 shadow-2xl shadow-primary/30 text-lg font-bold h-16 px-10 rounded-full transition-transform hover:-translate-y-1">
-                  Mulai Berkontribusi <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="#features" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full text-lg font-bold h-16 px-10 rounded-full border-2 border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-transform hover:-translate-y-1">
-                  Pelajari Sistem Kami
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
+        <HeroCarousel />
 
         {/* Features Section */}
         <section id="features" className="w-full py-32 bg-slate-50 dark:bg-slate-950 relative border-t border-slate-200 dark:border-slate-800">

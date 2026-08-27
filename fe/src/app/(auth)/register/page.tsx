@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import Link from "next/link";
+import { AuthLayout } from "@/components/auth-layout";
+import { Leaf } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -39,7 +41,6 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (data.success) {
-        // Redirect to OTP verification with email as query param
         router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
       } else {
         setError(data.message || "Gagal melakukan registrasi");
@@ -52,37 +53,75 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-4">
-      <Card className="w-full max-w-md shadow-lg border-primary/20 backdrop-blur-sm bg-white/90 dark:bg-slate-900/90">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-bold tracking-tight text-primary">Eco Hub</CardTitle>
-          <CardDescription>Buat akun baru untuk mulai berkontribusi</CardDescription>
+    <AuthLayout>
+      <Card className="w-full border-white/20 shadow-2xl backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 transition-all duration-300">
+        <CardHeader className="space-y-2 text-center pb-6">
+          <div className="flex justify-center mb-2">
+            <div className="p-3 bg-primary/10 rounded-full">
+              <Leaf className="w-8 h-8 text-primary" />
+            </div>
+          </div>
+          <CardTitle className="text-3xl font-heading font-bold tracking-tight text-foreground">
+            Daftar Akun
+          </CardTitle>
+          <CardDescription className="text-base text-muted-foreground font-medium">
+            Buat akun baru untuk mulai berkontribusi
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <div className="p-3 text-sm text-white bg-destructive rounded-md">{error}</div>}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3 text-sm font-medium text-destructive-foreground bg-destructive/90 rounded-md border border-destructive/20 shadow-sm animate-fade-in-up">
+                {error}
+              </div>
+            )}
             
             <div className="space-y-2">
-              <Label htmlFor="name">Nama Lengkap</Label>
-              <Input id="name" name="name" placeholder="John Doe" required value={formData.name} onChange={handleChange} />
+              <Label htmlFor="name" className="text-foreground font-semibold">Nama Lengkap</Label>
+              <Input 
+                id="name" 
+                name="name" 
+                placeholder="John Doe" 
+                required 
+                value={formData.name} 
+                onChange={handleChange}
+                className="bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+              />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" placeholder="nama@email.com" required value={formData.email} onChange={handleChange} />
+              <Label htmlFor="email" className="text-foreground font-semibold">Email</Label>
+              <Input 
+                id="email" 
+                name="email" 
+                type="email" 
+                placeholder="nama@email.com" 
+                required 
+                value={formData.email} 
+                onChange={handleChange}
+                className="bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+              />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required value={formData.password} onChange={handleChange} />
+              <Label htmlFor="password" className="text-foreground font-semibold">Password</Label>
+              <Input 
+                id="password" 
+                name="password" 
+                type="password" 
+                required 
+                value={formData.password} 
+                onChange={handleChange}
+                className="bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+              />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">Peran</Label>
+              <Label htmlFor="role" className="text-foreground font-semibold">Peran</Label>
               <select 
                 id="role" 
                 name="role" 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-white/30 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                 value={formData.role} 
                 onChange={handleChange}
               >
@@ -92,17 +131,17 @@ export default function RegisterPage() {
               </select>
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white shadow-md transition-transform active:scale-95" disabled={loading}>
+            <Button type="submit" className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all active:scale-[0.98]" disabled={loading}>
               {loading ? "Memproses..." : "Daftar Akun"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="text-sm text-muted-foreground">
-            Sudah punya akun? <Link href="/login" className="text-primary hover:underline font-medium">Masuk di sini</Link>
+        <CardFooter className="flex justify-center pt-2 pb-6">
+          <div className="text-sm font-medium text-muted-foreground">
+            Sudah punya akun? <Link href="/login" className="text-primary hover:text-primary/80 transition-colors ml-1">Masuk di sini</Link>
           </div>
         </CardFooter>
       </Card>
-    </div>
+    </AuthLayout>
   );
 }

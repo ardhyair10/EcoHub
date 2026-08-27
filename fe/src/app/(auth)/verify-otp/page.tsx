@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { AuthLayout } from "@/components/auth-layout";
+import { Leaf } from "lucide-react";
 
 function VerifyOtpForm() {
   const router = useRouter();
@@ -49,31 +51,43 @@ function VerifyOtpForm() {
   };
 
   return (
-    <Card className="w-full max-w-md shadow-lg border-primary/20 backdrop-blur-sm bg-white/90 dark:bg-slate-900/90">
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold tracking-tight text-primary">Verifikasi Email</CardTitle>
-        <CardDescription>
+    <Card className="w-full border-white/20 shadow-2xl backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 transition-all duration-300">
+      <CardHeader className="space-y-2 text-center pb-6">
+        <div className="flex justify-center mb-2">
+          <div className="p-3 bg-primary/10 rounded-full">
+            <Leaf className="w-8 h-8 text-primary" />
+          </div>
+        </div>
+        <CardTitle className="text-3xl font-heading font-bold tracking-tight text-foreground">
+          Verifikasi Email
+        </CardTitle>
+        <CardDescription className="text-base text-muted-foreground font-medium">
           Kami telah mengirimkan kode 6-digit ke <strong>{email}</strong>
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {error && <div className="p-3 text-sm text-white bg-destructive rounded-md text-center">{error}</div>}
+          {error && (
+            <div className="p-3 text-sm font-medium text-destructive-foreground bg-destructive/90 rounded-md border border-destructive/20 shadow-sm animate-fade-in-up">
+              {error}
+            </div>
+          )}
           
           <div className="flex justify-center">
             <InputOTP maxLength={6} value={otp} onChange={(value) => setOtp(value)}>
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
+              <InputOTPGroup className="gap-2">
+                {[0, 1, 2, 3, 4, 5].map((index) => (
+                  <InputOTPSlot 
+                    key={index} 
+                    index={index} 
+                    className="w-12 h-14 text-lg bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 rounded-md shadow-sm transition-colors"
+                  />
+                ))}
               </InputOTPGroup>
             </InputOTP>
           </div>
 
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white shadow-md transition-transform active:scale-95" disabled={loading || otp.length !== 6}>
+          <Button type="submit" className="w-full h-11 text-base font-semibold shadow-md hover:shadow-lg transition-all active:scale-[0.98]" disabled={loading || otp.length !== 6}>
             {loading ? "Memverifikasi..." : "Verifikasi"}
           </Button>
         </form>
@@ -84,10 +98,10 @@ function VerifyOtpForm() {
 
 export default function VerifyOtpPage() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-950 p-4">
-      <Suspense fallback={<div>Loading...</div>}>
+    <AuthLayout>
+      <Suspense fallback={<div className="text-white text-center">Loading...</div>}>
         <VerifyOtpForm />
       </Suspense>
-    </div>
+    </AuthLayout>
   );
 }
