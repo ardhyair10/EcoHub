@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+//  ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  CITIZEN
+  ADMIN_RW
+  B2B_BUYER
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum TransactionStatus {
+  PENDING
+  VALIDATED
+}
+
+enum EventParticipantStatus {
+  REGISTERED
+  ATTENDED
+}
+
+// ─────────────────────────────────────────────
+//  CORE: USER & AUTH
+// ─────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password_hash String
+  role          Role     @default(CITIZEN)
+  eco_points    Int      @default(0)
+  qr_code_id    String   @unique @default(uuid())
+  is_verified   Boolean  @default(false)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  transactions_as_citizen  DropOffTransaction[] @relation("CitizenTransactions")
+  transactions_as_admin    DropOffTransaction[] @relation("AdminTransactions")
+  products_listed          Product[]
+  orders_placed            Order[]              @relation("BuyerOrders")
+  event_participations     EventParticipant[]
+}
+
+model Otp {
+  id         String   @id @default(uuid())
+  email      String
+  otp_code   String
+  expires_at DateTime
+  created_at DateTime @default(now())
+
+  @@index([email])
+}
+
+// ─────────────────────────────────────────────
+//  WASTE MANAGEMENT
+// ─────────────────────────────────────────────
+
+model WasteCategory {
+  id            String   @id @default(uuid())
+  name          String   @unique  // e.g. "Plastik PET", "Kardus", "Besi", "Kaca"
+  point_per_kg  Int                // points earned per kg
+  description   String?
+  icon_url      String?
+  created_at    DateTime @default(now())
+
+  // Relations
+  transactions  DropOffTransaction[]
+}
+
+model DropOffTransaction {
+  id                  String   @id @default(uuid())
+  citizen_id          String
+  admin_id            String
+  waste_category_id   String
+  weight_kg           Float
+  points_awarded      Int
+  notes               String?
+  status              TransactionStatus @default(VALIDATED)
+  photo_url           String?
+  created_at          DateTime @default(now())
+
+  // Relations
+  citizen       User          @relation("CitizenTransactions", fields: [citizen_id], references: [id])
+  admin         User          @relation("AdminTransactions",   fields: [admin_id],   references: [id])
+  waste_category WasteCategory @relation(fields: [waste_category_id], references: [id])
+
+  @@index([citizen_id])
+  @@index([admin_id])
+  @@index([waste_category_id])
+  @@index([created_at])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────
+//  ECO-COMMERCE
+// ─────────────────────────────────────────────
+
+model Product {
+  id                String  @id @default(uuid())
+  seller_id         String
+  name              String
+  description       String
+  price_idr         Int
+  max_point_discount Int     @default(0) // Max points user can apply as discount
+  eco_badge_desc    String?             // e.g. "Menghemat 2kg plastik"
+  image_url         String?             // Cloudinary URL
+  stock             Int     @default(0)
+  is_active         Boolean @default(true)
+  carbon_saved_kg   Float?   // Estimasi penghematan karbon (kg CO2)
+  plastic_saved_kg  Float?   // Estimasi penghematan plastik (kg)
+  impact_desc       String?  // Deskripsi dampak, e.g. "Setara menanam 3 pohon"
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  seller  User    @relation(fields: [seller_id], references: [id])
+  orders  Order[]
+
+  @@index([seller_id])
+  @@index([is_active])
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  buyer_id       String
+  product_id     String
+  quantity       Int         @default(1)
+  points_used    Int         @default(0)
+  final_price_idr Int
+  status         OrderStatus @default(PENDING)
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
+
+  // Relations
+  buyer   User    @relation("BuyerOrders", fields: [buyer_id],   references: [id])
+  product Product @relation(fields: [product_id], references: [id])
+
+  @@index([buyer_id])
+  @@index([product_id])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────
+//  VOLUNTEER HUB
+// ─────────────────────────────────────────────
+
+model Event {
+  id             String   @id @default(uuid())
+  title          String
+  description    String?
+  location       String
+  date           DateTime
+  reward_points  Int      @default(0)
+  banner_url     String?
+  max_attendees  Int?
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now())
+
+  // Relations
+  participants   EventParticipant[]
+
+  @@index([date])
+  @@index([is_active])
+}
+
+model EventParticipant {
+  id          String                 @id @default(uuid())
+  event_id    String
+  citizen_id  String
+  status      EventParticipantStatus @default(REGISTERED)
+  joined_at   DateTime               @default(now())
+
+  // Relations
+  event    Event @relation(fields: [event_id],   references: [id])
+  citizen  User  @relation(fields: [citizen_id], references: [id])
+
+  @@unique([event_id, citizen_id]) // Prevent duplicate RSVP
+  @@index([event_id])
+  @@index([citizen_id])
+}
