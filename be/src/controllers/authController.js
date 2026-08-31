@@ -1,13 +1,17 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { sendOtpEmail } = require('../services/emailService');
 
-const prisma = new PrismaClient();
-
 const generateOtp = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
 };
+
+const buildOtpPayload = ({ email, otpCode, requireOtp = true }) => ({
+  email,
+  otp_code: otpCode,
+  require_otp: requireOtp,
+});
 
 const register = async (req, res) => {
   try {
@@ -29,6 +33,7 @@ const register = async (req, res) => {
         email,
         password_hash,
         role: role || 'CITIZEN',
+        is_verified: true,
       },
     });
 
@@ -44,17 +49,23 @@ const register = async (req, res) => {
       },
     });
 
-    // Kirim email (jangan await jika tidak ingin blok respons lama, tapi untuk aman kita await)
+    let emailError = null;
     try {
       await sendOtpEmail(email, otpCode);
     } catch (err) {
+      emailError = err;
       console.error('Error sending OTP:', err);
     }
 
+    const otpPayload = buildOtpPayload({ email: newUser.email, otpCode });
+    const message = emailError
+      ? `Registrasi berhasil. Email verifikasi gagal dikirim. Gunakan kode OTP berikut untuk melanjutkan: ${otpCode}`
+      : 'Registrasi berhasil. Silakan cek email Anda untuk kode OTP.';
+
     res.status(201).json({
       success: true,
-      message: 'Registrasi berhasil. Silakan cek email Anda untuk kode OTP.',
-      data: { email: newUser.email },
+      message,
+      data: { ...otpPayload, email: newUser.email },
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -132,16 +143,23 @@ const login = async (req, res) => {
         data: { email, otp_code: otpCode, expires_at: expiresAt },
       });
 
+      let emailError = null;
       try {
         await sendOtpEmail(email, otpCode);
       } catch (err) {
+        emailError = err;
         console.error('Error sending OTP:', err);
       }
 
+      const otpPayload = buildOtpPayload({ email, otpCode });
+      const message = emailError
+        ? `Akun belum terverifikasi. Email OTP gagal dikirim. Gunakan kode OTP berikut untuk melanjutkan: ${otpCode}`
+        : 'Akun belum terverifikasi. Kami telah mengirimkan OTP baru ke email Anda.';
+
       return res.status(403).json({
         success: false,
-        message: 'Akun belum terverifikasi. Kami telah mengirimkan OTP baru ke email Anda.',
-        data: { require_otp: true, email },
+        message,
+        data: otpPayload,
       });
     }
 
@@ -169,4 +187,5 @@ module.exports = {
   register,
   verifyOtp,
   login,
+  buildOtpPayload,
 };
