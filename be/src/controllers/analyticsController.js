@@ -87,7 +87,7 @@ const getNotifications = async (req, res) => {
       prisma.eventParticipant.findMany({
         where: { citizen_id: userId },
         include: { event: { select: { title: true, reward_points: true } } },
-        orderBy: { created_at: 'desc' },
+        orderBy: { joined_at: 'desc' },
         take: 5,
       }),
     ]);

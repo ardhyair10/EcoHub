@@ -12,7 +12,8 @@ interface Product {
   id: string;
   name: string;
   description: string;
-  price: number;
+  price?: number;
+  price_idr?: number;
   stock: number;
   max_point_discount: number;
   image_url: string;

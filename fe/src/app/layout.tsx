@@ -3,6 +3,8 @@ import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ChatWidget } from "@/components/chat-widget";
+import { CartProvider } from "@/context/CartContext";
+import { CartDrawer } from "@/components/cart-drawer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,8 +37,11 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <ChatWidget />
+          <CartProvider>
+            {children}
+            <ChatWidget />
+            <CartDrawer />
+          </CartProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -47,18 +47,17 @@ export function HeroCarousel() {
       {/* Glassmorphism Overlay - Changed to be more transparent so images are visible */}
       <div className="absolute inset-0 z-0 bg-white/30 dark:bg-black/50 backdrop-blur-md"></div>
       
-      <div className="container relative z-10 px-4 md:px-6 mx-auto flex flex-col items-center text-center space-y-10">
-        <div className="inline-flex items-center rounded-full border border-primary/40 bg-white/60 dark:bg-black/40 px-4 py-2 text-sm font-bold text-primary dark:text-primary shadow-lg backdrop-blur-xl uppercase tracking-wider">
-          <span className="flex h-2.5 w-2.5 rounded-full bg-primary mr-3 animate-pulse"></span>
+      <div className="container relative z-10 px-4 md:px-6 mx-auto flex flex-col items-center text-center space-y-8">
+        <div className="inline-flex items-center rounded-full border border-primary/20 bg-white/80 dark:bg-slate-900/80 px-4 py-1.5 text-xs font-semibold text-primary shadow-sm backdrop-blur-md uppercase tracking-widest">
           SDGs 7, 8, 9 & 11
         </div>
         
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-heading font-black tracking-tighter max-w-5xl text-slate-900 dark:text-white leading-[1.1] drop-shadow-lg">
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-black tracking-tight max-w-4xl text-slate-900 dark:text-white leading-[1.1]">
           Platform Ekonomi Sirkular <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-400 to-secondary">Pintar & Berkelanjutan</span>
+          <span className="text-primary">Pintar & Berkelanjutan</span>
         </h1>
         
-        <p className="mx-auto max-w-[800px] text-xl md:text-2xl font-semibold text-slate-800 dark:text-slate-200 leading-relaxed drop-shadow-md">
+        <p className="mx-auto max-w-[700px] text-lg md:text-xl font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
           Ekosistem digital end-to-end yang menghubungkan rumah tangga, titik drop-off (RT/RW), dan industri daur ulang B2B. Ubah sampah menjadi nilai ekonomi.
         </p>
         

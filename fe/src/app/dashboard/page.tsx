@@ -7,7 +7,7 @@ import { QRCodeSVG } from "qrcode.react";
 import {
   Leaf, LogOut, History, Award, Package, TrendingUp,
   ChevronRight, Recycle, Trophy, Target, Crown,
-  FileText, Users, Building2
+  FileText, Users, Building2, TreePine, Wind, Droplets, Fuel, Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -230,7 +230,7 @@ export default function DashboardPage() {
         {/* Greeting */}
         <div className="mb-8">
           <h1 className="text-3xl font-heading font-black text-foreground">
-            Halo, {user.name.split(" ")[0]}! 👋
+            Halo, {user.name.split(" ")[0]}
           </h1>
           <p className="text-muted-foreground mt-1 font-medium">
             {isAdmin ? "Panel Admin RW · Eco Hub" : "Dashboard Warga · Eco Hub"}
@@ -419,49 +419,52 @@ export default function DashboardPage() {
 
             {/* Community Eco Analytics Widget */}
             {analytics && (
-              <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-white rounded-3xl p-6 border border-emerald-500/40 shadow-xl relative overflow-hidden">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-emerald-400" />
-                    <h3 className="font-heading font-bold text-lg text-white">Analisis Dampak Lingkungan RW 05</h3>
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    <h3 className="font-heading font-bold text-lg text-foreground">Dampak Lingkungan (Komunitas)</h3>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-extrabold uppercase tracking-wider">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 -ml-3.5" />
-                    Real-Time Live
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                    <Activity className="h-3 w-3" />
+                    Metrik Real-time
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center mb-5">
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 shadow-inner">
-                    <p className="text-2xl font-black text-amber-400">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center mb-6">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                    <TreePine className="h-5 w-5 text-emerald-500 mb-2 opacity-80" />
+                    <p className="text-2xl font-black text-foreground">
                       <AnimatedCounter value={analytics.impact_equivalents?.trees_saved || 0} decimals={1} />
                     </p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">🌳 Pohon Terselamatkan</p>
+                    <p className="text-[11px] text-muted-foreground font-medium mt-1">Pohon Diselamatkan</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 shadow-inner">
-                    <p className="text-2xl font-black text-emerald-400">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                    <Wind className="h-5 w-5 text-sky-500 mb-2 opacity-80" />
+                    <p className="text-2xl font-black text-foreground">
                       <AnimatedCounter value={analytics.impact_equivalents?.carbon_saved_kg || 0} decimals={1} prefix="-" suffix=" kg" />
                     </p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">💨 Emisi CO₂ Dihemat</p>
+                    <p className="text-[11px] text-muted-foreground font-medium mt-1">Reduksi Karbon (CO₂)</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 shadow-inner">
-                    <p className="text-2xl font-black text-sky-400">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                    <Droplets className="h-5 w-5 text-blue-500 mb-2 opacity-80" />
+                    <p className="text-2xl font-black text-foreground">
                       <AnimatedCounter value={analytics.impact_equivalents?.plastic_saved_kg || 0} decimals={1} prefix="-" suffix=" kg" />
                     </p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">🌊 Plastik Murni Dihemat</p>
+                    <p className="text-[11px] text-muted-foreground font-medium mt-1">Plastik Murni Dihemat</p>
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-3.5 shadow-inner">
-                    <p className="text-2xl font-black text-teal-400">
+                  <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                    <Fuel className="h-5 w-5 text-amber-500 mb-2 opacity-80" />
+                    <p className="text-2xl font-black text-foreground">
                       <AnimatedCounter value={analytics.impact_equivalents?.biofuel_liters || 0} decimals={1} suffix=" L" />
                     </p>
-                    <p className="text-[10px] text-slate-400 font-medium mt-0.5">🛢️ Biofuel Dihasilkan</p>
+                    <p className="text-[11px] text-muted-foreground font-medium mt-1">Potensi Biofuel</p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-slate-400 border-t border-white/10 pt-3">
-                  <span>Total Sampah Didaur Ulang: <strong className="text-white"><AnimatedCounter value={analytics.total_weight_kg} decimals={1} suffix=" kg" /></strong></span>
-                  <span>Partisipasi Warga: <strong className="text-emerald-400"><AnimatedCounter value={analytics.total_citizens} decimals={0} suffix=" orang" /></strong></span>
+                <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-slate-100 dark:border-slate-800 pt-4">
+                  <span>Total Daur Ulang: <strong className="text-foreground"><AnimatedCounter value={analytics.total_weight_kg} decimals={1} suffix=" kg" /></strong></span>
+                  <span>Partisipan: <strong className="text-primary"><AnimatedCounter value={analytics.total_citizens} decimals={0} suffix=" warga" /></strong></span>
                 </div>
               </div>
             )}

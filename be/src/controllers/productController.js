@@ -3,12 +3,17 @@ const prisma = require('../lib/prisma');
 // GET /api/products — Daftar produk aktif
 const getProducts = async (req, res) => {
   try {
-    const { page = 1, limit = 12 } = req.query;
+    const { page = 1, limit = 12, search = '' } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
+    const whereClause = {
+      is_active: true,
+      ...(search ? { name: { contains: search, mode: 'insensitive' } } : {})
+    };
+
     const [products, total] = await Promise.all([
       prisma.product.findMany({
-        where: { is_active: true },
+        where: whereClause,
         include: {
           seller: { select: { id: true, name: true } },
         },
@@ -16,7 +21,7 @@ const getProducts = async (req, res) => {
         skip,
         take: parseInt(limit),
       }),
-      prisma.product.count({ where: { is_active: true } }),
+      prisma.product.count({ where: whereClause }),
     ]);
     
     res.json({

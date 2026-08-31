@@ -33,7 +33,7 @@ const register = async (req, res) => {
         email,
         password_hash,
         role: role || 'CITIZEN',
-        is_verified: true,
+        is_verified: false,
       },
     });
 
@@ -183,9 +183,92 @@ const login = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Return success even if user not found to prevent email enumeration
+      return res.status(200).json({ success: true, message: 'Jika email terdaftar, OTP telah dikirimkan.' });
+    }
+
+    const otpCode = generateOtp();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Delete existing OTPs for this email to prevent spam
+    await prisma.otp.deleteMany({ where: { email } });
+
+    await prisma.otp.create({
+      data: {
+        email,
+        otp_code: otpCode,
+        expires_at: expiresAt,
+      },
+    });
+
+    try {
+      await sendOtpEmail(email, otpCode);
+    } catch (err) {
+      console.error('Error sending forgot password OTP:', err);
+      // Fallback for demo purposes if email fails, usually you'd return an error
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Jika email terdaftar, OTP telah dikirimkan.',
+        // IN PRODUCTION, DO NOT SEND OTP IN RESPONSE. This is just in case SMTP fails during development.
+        data: { fallback_otp: otpCode } 
+      });
+    }
+
+    res.status(200).json({ success: true, message: 'Jika email terdaftar, OTP telah dikirimkan.' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server' });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { email, otp_code, new_password } = req.body;
+
+    const otpRecord = await prisma.otp.findFirst({
+      where: { email, otp_code },
+      orderBy: { created_at: 'desc' },
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ success: false, message: 'Kode OTP tidak valid' });
+    }
+
+    if (otpRecord.expires_at < new Date()) {
+      return res.status(400).json({ success: false, message: 'Kode OTP sudah kedaluwarsa' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(new_password, salt);
+
+    await prisma.user.update({
+      where: { email },
+      data: { 
+        password_hash,
+        is_verified: true // Ensure they are verified if they can reset password
+      },
+    });
+
+    await prisma.otp.deleteMany({ where: { email } });
+
+    res.status(200).json({ success: true, message: 'Password berhasil diubah. Silakan login.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server' });
+  }
+};
+
 module.exports = {
   register,
   verifyOtp,
   login,
+  forgotPassword,
+  resetPassword,
   buildOtpPayload,
 };

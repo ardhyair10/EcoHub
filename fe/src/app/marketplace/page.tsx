@@ -7,8 +7,9 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { ArrowLeft, ShoppingBag, Search, TreePine, Droplets, Package, Leaf } from "lucide-react";
+import { ArrowLeft, ShoppingBag, ShoppingCart, Search, TreePine, Droplets, Package, Leaf } from "lucide-react";
 import { safeFetchJson } from "@/lib/api";
+import { useCart } from "@/context/CartContext";
 
 interface Product {
   id: string;
@@ -37,6 +38,7 @@ export default function MarketplacePage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
+  const { totalItems, setIsCartOpen, addToCart } = useCart();
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -91,7 +93,17 @@ export default function MarketplacePage() {
               <h1 className="text-xl font-heading font-bold text-slate-900 dark:text-white">Eco Marketplace</h1>
             </div>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" className="relative text-slate-700 dark:text-slate-300 hover:text-primary" onClick={() => setIsCartOpen(true)}>
+              <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {totalItems}
+                </span>
+              )}
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
       </nav>
 
@@ -189,15 +201,26 @@ export default function MarketplacePage() {
                     </div>
                   </CardContent>
 
-                  <CardFooter className="px-5 pb-5 pt-0 flex flex-col items-start gap-2 border-t border-slate-100 dark:border-slate-800/50 pt-4 mt-auto">
-                    <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                      {formatIDR(product.price_idr || product.price || 0)}
+                  <CardFooter className="px-5 pb-5 pt-0 flex flex-col items-start gap-3 border-t border-slate-100 dark:border-slate-800/50 pt-4 mt-auto">
+                    <div className="w-full flex justify-between items-center">
+                      <div className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                        {formatIDR(product.price_idr || product.price || 0)}
+                      </div>
                     </div>
                     {product.max_point_discount > 0 && (
                       <div className="text-xs text-amber-600 dark:text-amber-400 font-bold bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full w-full text-center">
                         Tukar poin s.d. {product.max_point_discount} pts
                       </div>
                     )}
+                    <Button 
+                      className="w-full font-semibold shadow-md active:scale-95 transition-transform" 
+                      onClick={(e) => {
+                        e.preventDefault(); // Prevent navigating to detail page
+                        addToCart(product, 1, 0); // Default quantity 1, 0 points
+                      }}
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2" /> Tambah Keranjang
+                    </Button>
                   </CardFooter>
                 </Card>
               </Link>

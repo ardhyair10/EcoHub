@@ -196,7 +196,7 @@ export default function AdminPage() {
       });
 
       const data = await safeFetchJson(res);
-      setResult({ success: data.success, message: data.message });
+      setResult({ success: data.success, message: data.message || "" });
 
       if (data.success) {
         setSelectedUser((u) =>

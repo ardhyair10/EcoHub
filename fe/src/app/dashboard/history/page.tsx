@@ -252,7 +252,7 @@ export default function HistoryPage() {
                             +{transaction.points_awarded} poin
                           </div>
                         )}
-                        <StatusBadge status={transaction.status} />
+                        <StatusBadge status={transaction.status as any} />
                       </div>
                     </div>
                   </div>

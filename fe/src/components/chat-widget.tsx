@@ -35,7 +35,7 @@ export function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       sender: "bot",
-      text: "🌱 **Halo! Saya Eco-Assistant AI** 👋\n\nAda yang bisa saya bantu seputar pemilahan sampah, poin per kg, lokasi Pos RW, atau katalog produk daur ulang hari ini?",
+      text: "**Halo! Saya Eco-Assistant AI**\n\nAda yang bisa saya bantu seputar pemilahan sampah, metrik poin, lokasi Pos RW, atau katalog produk hari ini?",
       time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
@@ -101,18 +101,18 @@ export function ChatWidget() {
   };
 
   const suggestions = [
-    "📍 Di mana lokasi Pos RW?",
-    "🍳 Berapa poin minyak jelantah?",
-    "🔌 Berapa poin sampah e-Waste?",
-    "🍾 Syarat setor botol plastik PET?",
-    "📦 Berapa poin kardus & kertas?",
-    "📜 Siapa penandatangan sertifikat?",
-    "🛍️ Katalog barang Marketplace?",
-    "🤝 Cara dapat poin dari Event?",
-    "🏆 Gimana cara dapet badge?",
-    "🎯 Berapa target poin bulanan?",
-    "🪙 Berapa nilai 1 Eco-Point?",
-    "🏢 Apa itu B2B Bulk Waste Hub?",
+    "Di mana lokasi Pos RW?",
+    "Berapa poin minyak jelantah?",
+    "Berapa poin sampah e-Waste?",
+    "Syarat setor botol plastik PET?",
+    "Berapa poin kardus & kertas?",
+    "Siapa penandatangan sertifikat?",
+    "Katalog barang Marketplace?",
+    "Cara dapat poin dari Event?",
+    "Gimana cara dapet badge?",
+    "Berapa target poin bulanan?",
+    "Berapa nilai 1 Eco-Point?",
+    "Apa itu B2B Bulk Waste Hub?",
   ];
 
   return (

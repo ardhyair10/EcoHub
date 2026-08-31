@@ -63,8 +63,8 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Right Panel: Form area with Glassmorphism container support */}
-      <div className="relative z-10 w-full max-w-md lg:max-w-none p-4 lg:p-12 lg:h-full flex items-center justify-center">
-        <div className="w-full max-w-md">
+      <div className="relative z-10 w-full max-w-lg lg:max-w-none p-4 lg:p-12 lg:h-full flex items-center justify-center">
+        <div className="w-full max-w-lg">
           {children}
         </div>
       </div>
