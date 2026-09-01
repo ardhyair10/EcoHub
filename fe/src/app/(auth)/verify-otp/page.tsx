@@ -42,7 +42,13 @@ function VerifyOtpForm() {
       if (data.success) {
         localStorage.setItem("token", data.data.token);
         localStorage.setItem("user", JSON.stringify(data.data.user));
-        router.push("/dashboard");
+        if (data.data.user?.role === "SUPER_ADMIN" || data.data.user?.role === "ADMIN_RW") {
+          router.push("/admin");
+        } else if (data.data.user?.role === "B2B_BUYER") {
+          router.push("/b2b");
+        } else {
+          router.push("/welcome");
+        }
       } else {
         setError(data.message || "Kode OTP tidak valid");
       }
@@ -54,7 +60,7 @@ function VerifyOtpForm() {
   };
 
   return (
-    <Card className="w-full border-white/20 shadow-2xl backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 transition-all duration-300">
+    <Card className="w-full border-0 shadow-none bg-transparent">
       <CardHeader className="space-y-2 text-center pb-6">
         <div className="flex justify-center mb-2">
           <div className="p-3 bg-primary/10 rounded-full">
@@ -84,7 +90,7 @@ function VerifyOtpForm() {
                   <InputOTPSlot 
                     key={index} 
                     index={index} 
-                    className="w-12 h-14 text-lg bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 rounded-md shadow-sm transition-colors"
+                    className="w-12 h-14 text-lg bg-card  border-border dark:border-slate-800 rounded-md shadow-sm transition-colors"
                   />
                 ))}
               </InputOTPGroup>

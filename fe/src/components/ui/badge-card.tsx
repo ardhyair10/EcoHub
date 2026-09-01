@@ -18,13 +18,13 @@ export function BadgeCard({ icon, name, description, unlocked, progress, target,
   if (compact) {
     return (
       <div
-        className={`flex flex-col items-center gap-1 p-3 rounded-2xl border transition-all min-w-[80px] ${
+        className={`flex flex-col items-center gap-1 p-3 rounded-lg border transition-all min-w-[80px] ${
           unlocked
             ? "bg-accent/10 border-accent/30 shadow-sm"
             : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 opacity-50"
         }`}
       >
-        <span className="text-2xl">{unlocked ? icon : "🔒"}</span>
+        <span className="text-2xl">{unlocked ? icon : ""}</span>
         <span className={`text-xs font-bold text-center leading-tight ${unlocked ? "text-foreground" : "text-muted-foreground"}`}>
           {name}
         </span>
@@ -34,10 +34,10 @@ export function BadgeCard({ icon, name, description, unlocked, progress, target,
 
   return (
     <div
-      className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+      className={`flex items-center gap-4 p-4 rounded-lg border transition-all ${
         unlocked
           ? "bg-accent/5 border-accent/20 shadow-sm"
-          : "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+          : "bg-slate-50  border-slate-200 dark:border-slate-700"
       }`}
     >
       <div className={`w-12 h-12 flex items-center justify-center rounded-xl text-2xl ${
@@ -52,7 +52,7 @@ export function BadgeCard({ icon, name, description, unlocked, progress, target,
           <div className="mt-2">
             <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-500"
+                className="h-full bg-card border border-border rounded-full transition-all duration-500"
                 style={{ width: `${percentage}%` }}
               />
             </div>
@@ -61,7 +61,7 @@ export function BadgeCard({ icon, name, description, unlocked, progress, target,
         )}
       </div>
       {unlocked && (
-        <span className="text-xs font-bold text-accent bg-accent/10 px-2 py-1 rounded-full">✓ Diraih</span>
+        <span className="text-xs font-bold text-accent bg-accent/10 px-2 py-1 rounded-full"> Diraih</span>
       )}
     </div>
   );

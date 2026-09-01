@@ -19,6 +19,9 @@ const authenticate = (req, res, next) => {
 
 const requireRole = (...roles) => {
   return (req, res, next) => {
+    if (req.user.role === 'SUPER_ADMIN') {
+      return next();
+    }
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Akses ditolak. Peran tidak mencukupi.' });
     }

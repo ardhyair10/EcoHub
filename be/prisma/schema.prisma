@@ -14,6 +14,7 @@ enum Role {
   CITIZEN
   ADMIN_RW
   B2B_BUYER
+  SUPER_ADMIN
 }
 
 enum OrderStatus {

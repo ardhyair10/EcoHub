@@ -120,7 +120,7 @@ export function ChatWidget() {
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-[80] w-14 h-14 bg-gradient-to-r from-primary to-emerald-600 text-white rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 group"
+        className="fixed bottom-6 right-6 z-[80] w-12 h-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-md hover:bg-primary/90 transition-all duration-300"
         aria-label="Tanya AI Eco-Assistant"
       >
         {isOpen ? (
@@ -136,27 +136,26 @@ export function ChatWidget() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-[80] w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col h-[520px] transition-all duration-300">
+        <div className="fixed bottom-24 right-6 z-[80] w-full max-w-sm sm:max-w-md bg-card rounded-lg border border-border shadow-lg overflow-hidden flex flex-col h-[520px] transition-all duration-300">
           {/* Header */}
-          <div className="bg-gradient-to-r from-primary to-emerald-600 p-4 text-white flex items-center justify-between">
+          <div className="bg-card border-b border-border p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                <Bot className="h-5 w-5 text-white" />
+              <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                <Bot className="h-4 w-4 text-muted-foreground" />
               </div>
               <div>
-                <h3 className="font-heading font-bold text-sm flex items-center gap-1.5">
-                  Eco-Assistant AI <Sparkles className="h-3.5 w-3.5 text-accent" />
+                <h3 className="font-medium text-sm text-foreground flex items-center gap-1.5">
+                  Eco-Assistant
                 </h3>
-                <p className="text-xs text-white/80">Edukasi & Panduan Daur Ulang</p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-white/80 hover:text-white transition-colors">
-              <X className="h-5 w-5" />
+            <button onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">
+              <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 text-sm bg-slate-50/50 dark:bg-slate-950/50">
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 text-sm bg-muted/30">
             {messages.map((m, i) => (
               <div
                 key={i}
@@ -168,10 +167,10 @@ export function ChatWidget() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+                  className={`max-w-[80%] rounded-md px-4 py-2.5 ${
                     m.sender === "user"
-                      ? "bg-primary text-white rounded-br-none"
-                      : "bg-white dark:bg-slate-800 text-foreground border border-slate-200 dark:border-slate-700 rounded-bl-none shadow-sm"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card text-foreground border border-border shadow-sm"
                   }`}
                 >
                   <div className="leading-relaxed">{formatMarkdownText(m.text)}</div>
@@ -184,7 +183,7 @@ export function ChatWidget() {
                   </p>
                 </div>
                 {m.sender === "user" && (
-                  <div className="w-7 h-7 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                  <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                     <User className="h-4 w-4 text-muted-foreground" />
                   </div>
                 )}
@@ -195,8 +194,8 @@ export function ChatWidget() {
                 <div className="w-7 h-7 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                   <Bot className="h-4 w-4 text-primary" />
                 </div>
-                <div className="bg-white dark:bg-slate-800 rounded-2xl rounded-bl-none px-4 py-2.5 border border-slate-200 dark:border-slate-700 flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <div className="bg-card rounded-md px-4 py-2.5 border border-border flex items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   <span className="text-xs">Mengetik...</span>
                 </div>
               </div>
@@ -210,7 +209,7 @@ export function ChatWidget() {
               <button
                 key={idx}
                 onClick={() => handleSend(s)}
-                className="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-primary/10 hover:text-primary transition-colors text-muted-foreground px-2.5 py-1 rounded-full whitespace-nowrap flex-shrink-0 font-medium"
+                className="text-xs bg-muted hover:bg-muted/80 text-muted-foreground px-2.5 py-1.5 rounded-md whitespace-nowrap flex-shrink-0 font-medium transition-colors"
               >
                 {s}
               </button>
@@ -218,7 +217,7 @@ export function ChatWidget() {
           </div>
 
           {/* Input Bar */}
-          <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex gap-2">
+          <div className="p-3 bg-card border-t border-border flex gap-2">
             <Input
               placeholder="Tanyakan seputar daur ulang..."
               value={input}

@@ -94,7 +94,7 @@ export default function B2BPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="sticky top-0 z-50 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80">
+      <header className="sticky top-0 z-50 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800  bg-card ">
         <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full">
             <ArrowLeft className="h-5 w-5" />
@@ -126,15 +126,15 @@ export default function B2BPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Hero */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white border border-slate-800 shadow-xl mb-8">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-lg p-6 sm:p-8 text-white border border-slate-800 shadow-sm mb-8">
           <div className="max-w-xl space-y-2">
             <span className="px-3 py-1 rounded-full bg-secondary/20 border border-secondary/40 text-secondary text-xs font-bold uppercase">
               B2B Circular Economy
             </span>
             <h1 className="text-3xl font-heading font-black">Stok Sampah Terkumpul RW</h1>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-foreground leading-relaxed">
               Hub penghubung antara pos penampungan sampah RW dan industri daur ulang bulk. Dapatkan bahan baku daur ulang berkualitas secara terintegrasi.
             </p>
           </div>
@@ -143,7 +143,7 @@ export default function B2BPage() {
         {/* Summary Cards */}
         {summary && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div className="bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                 <Scale className="h-6 w-6" />
               </div>
@@ -152,7 +152,7 @@ export default function B2BPage() {
                 <p className="text-xs text-muted-foreground font-medium">Total Sampah Terkumpul</p>
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div className="bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
                 <TreePine className="h-6 w-6" />
               </div>
@@ -161,7 +161,7 @@ export default function B2BPage() {
                 <p className="text-xs text-muted-foreground font-medium">Estimasi CO₂ Dihemat</p>
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+            <div className="bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
               <div className="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center text-secondary">
                 <Recycle className="h-6 w-6" />
               </div>
@@ -176,7 +176,7 @@ export default function B2BPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Stock Table */}
           <div className="lg:col-span-2">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
               <h2 className="font-heading font-bold text-lg text-foreground flex items-center gap-2">
                 <Recycle className="h-5 w-5 text-primary" /> Ketersediaan Stok per Kategori
               </h2>
@@ -210,7 +210,7 @@ export default function B2BPage() {
 
           {/* Right Column: B2B Buy Request Form */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
               <h2 className="font-heading font-bold text-lg text-foreground flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-secondary" /> Pengajuan Pembelian Bulk
               </h2>

@@ -82,7 +82,7 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-inter">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <nav className="sticky top-0 z-50 bg-card   border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")}>
@@ -90,11 +90,11 @@ export default function MarketplacePage() {
             </Button>
             <div className="flex items-center gap-2">
               <ShoppingBag className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-heading font-bold text-slate-900 dark:text-white">Eco Marketplace</h1>
+              <h1 className="text-xl font-heading font-bold text-foreground ">Eco Marketplace</h1>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative text-slate-700 dark:text-slate-300 hover:text-primary" onClick={() => setIsCartOpen(true)}>
+            <Button variant="ghost" size="icon" className="relative text-foreground dark:text-foreground hover:text-primary" onClick={() => setIsCartOpen(true)}>
               <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (
                 <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
@@ -109,16 +109,16 @@ export default function MarketplacePage() {
 
       <main className="container mx-auto px-4 py-8">
         {/* Hero Section */}
-        <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl p-8 mb-8 text-center border border-white/20 dark:border-slate-800/50 backdrop-blur-sm">
-          <h2 className="text-3xl font-heading font-bold text-slate-900 dark:text-white mb-4">Produk Ramah Lingkungan</h2>
-          <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg p-8 mb-8 text-center border border-border dark:border-slate-800/50 ">
+          <h2 className="text-3xl font-heading font-bold text-foreground  mb-4">Produk Ramah Lingkungan</h2>
+          <p className="text-foreground dark:text-foreground max-w-2xl mx-auto">
             Temukan produk berkelanjutan dan gunakan Eco-Points Anda untuk mendapatkan diskon. Setiap pembelian membantu mengurangi jejak karbon dan sampah plastik.
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="relative max-w-md mx-auto mb-12">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground" />
           <Input 
             placeholder="Cari produk eco-friendly..." 
             value={search}
@@ -132,7 +132,7 @@ export default function MarketplacePage() {
 
         {/* Error State */}
         {error && (
-          <div className="p-4 mb-8 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-2xl text-center">
+          <div className="p-4 mb-8 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-center">
             {error}
           </div>
         )}
@@ -149,7 +149,7 @@ export default function MarketplacePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
             {products.map((product) => (
               <Link key={product.id} href={`/marketplace/${product.id}`}>
-                <Card className="h-full overflow-hidden bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-slate-200/50 dark:border-slate-800/50 rounded-3xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                <Card className="h-full overflow-hidden bg-card   border-slate-200/50 dark:border-slate-800/50 rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                   <div className="relative aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden group">
                     {product.image_url ? (
                       <img 
@@ -178,10 +178,10 @@ export default function MarketplacePage() {
                     <div className="text-[11px] font-semibold text-primary uppercase tracking-wider mb-1">
                       Oleh {product.seller?.name || "Ricki Gilang Saputra"}
                     </div>
-                    <h3 className="font-heading font-bold text-lg text-slate-900 dark:text-white mb-2 line-clamp-1">
+                    <h3 className="font-heading font-bold text-lg text-foreground  mb-2 line-clamp-1">
                       {product.name}
                     </h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 h-10">
+                    <p className="text-sm text-foreground dark:text-foreground line-clamp-2 mb-4 h-10">
                       {product.description}
                     </p>
                     
@@ -232,10 +232,10 @@ export default function MarketplacePage() {
         {!loading && !error && products.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <Package className="w-10 h-10 text-slate-400" />
+              <Package className="w-10 h-10 text-foreground" />
             </div>
-            <h3 className="text-xl font-heading font-semibold text-slate-900 dark:text-white mb-2">Tidak ada produk</h3>
-            <p className="text-slate-500 dark:text-slate-400">Produk yang Anda cari tidak ditemukan.</p>
+            <h3 className="text-xl font-heading font-semibold text-foreground  mb-2">Tidak ada produk</h3>
+            <p className="text-foreground dark:text-foreground">Produk yang Anda cari tidak ditemukan.</p>
           </div>
         )}
 
@@ -250,7 +250,7 @@ export default function MarketplacePage() {
             >
               Sebelumnya
             </Button>
-            <div className="flex items-center px-4 font-medium text-slate-600 dark:text-slate-300">
+            <div className="flex items-center px-4 font-medium text-foreground dark:text-foreground">
               {page} / {totalPages}
             </div>
             <Button

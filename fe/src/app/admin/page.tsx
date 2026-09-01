@@ -20,6 +20,10 @@ import {
   Calendar,
   LogOut,
   Building2,
+  QrCode,
+  Camera,
+  Package,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +32,10 @@ import StatusBadge from "@/components/ui/status-badge";
 import { NotificationBell } from "@/components/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { safeFetchJson } from "@/lib/api";
+import { Scanner } from '@yudiel/react-qr-scanner';
+import ProductTab from "./product-tab";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -52,12 +60,27 @@ interface WasteCategory {
 export default function AdminPage() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"input" | "warga" | "riwayat" | "b2b">("input");
+  const [user, setUser] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "input" | "warga" | "riwayat" | "b2b" | "produk">("overview");
+  const [analytics, setAnalytics] = useState<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    gsap.from(".admin-card", {
+      y: 20,
+      opacity: 0,
+      duration: 0.5,
+      stagger: 0.05,
+      ease: "power2.out",
+    });
+  }, { scope: containerRef, dependencies: [activeTab, analytics, wargaList, transactions, b2bRequests] });
 
   // --- Tab 1: Input Sampah State ---
   const [inputSearchQuery, setInputSearchQuery] = useState("");
   const [inputSearchResults, setInputSearchResults] = useState<CitizenUser[]>([]);
   const [inputSearching, setInputSearching] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanError, setScanError] = useState("");
   const [selectedUser, setSelectedUser] = useState<CitizenUser | null>(null);
 
   const [categories, setCategories] = useState<WasteCategory[]>([]);
@@ -132,10 +155,11 @@ export default function AdminPage() {
     }
 
     const user = userStr ? JSON.parse(userStr) : null;
-    if (!user || user.role !== "ADMIN_RW") {
+    if (!user || (user.role !== "ADMIN_RW" && user.role !== "SUPER_ADMIN")) {
       router.push("/dashboard");
       return;
     }
+    setUser(user);
     setToken(t);
 
     fetch(`${API_URL}/api/waste-categories`)
@@ -162,6 +186,30 @@ export default function AdminPage() {
       if (data.success) setInputSearchResults(data.data);
     } catch (err) {
       console.error(err);
+    } finally {
+      setInputSearching(false);
+    }
+  };
+
+  const handleScan = async (result: any) => {
+    if (!result || !result[0]) return;
+    const qrCodeId = result[0].rawValue;
+    setShowScanner(false);
+    setScanError("");
+    setInputSearching(true);
+    try {
+      const res = await fetch(`${API_URL}/api/users/by-qr/${qrCodeId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await safeFetchJson(res);
+      if (data.success) {
+        setSelectedUser(data.data);
+        setInputSearchQuery(data.data.name);
+      } else {
+        setScanError("QR Code tidak dikenali atau tidak valid.");
+      }
+    } catch (err) {
+      setScanError("Terjadi kesalahan saat memindai.");
     } finally {
       setInputSearching(false);
     }
@@ -218,7 +266,7 @@ export default function AdminPage() {
   // ==========================================
   // TAB 2: DAFTAR WARGA LOGIC
   // ==========================================
-  const fetchWarga = async (page = 1, search = wargaSearch) => {
+  const fetchWarga = useCallback(async (page = 1, search = wargaSearch) => {
     if (!token) return;
     setWargaLoading(true);
     try {
@@ -237,7 +285,7 @@ export default function AdminPage() {
     } finally {
       setWargaLoading(false);
     }
-  };
+  }, [token, wargaSearch]);
 
   const openCitizenDetail = async (id: string) => {
     if (!token) return;
@@ -255,7 +303,7 @@ export default function AdminPage() {
   // ==========================================
   // TAB 3: RIWAYAT TRANSAKSI LOGIC
   // ==========================================
-  const fetchTransactions = async (page = 1) => {
+  const fetchTransactions = useCallback(async (page = 1) => {
     if (!token) return;
     setTxLoading(true);
     try {
@@ -273,7 +321,7 @@ export default function AdminPage() {
     } finally {
       setTxLoading(false);
     }
-  };
+  }, [token]);
 
   const validateTransaction = async (id: string) => {
     if (!token) return;
@@ -296,17 +344,29 @@ export default function AdminPage() {
     }
   };
 
+  const fetchAnalytics = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/analytics/community`);
+      const d = await safeFetchJson(res);
+      if (d.success) setAnalytics(d.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [token]);
+
   // Handle lazy loading tabs
   useEffect(() => {
+    if (activeTab === "overview" && !analytics) fetchAnalytics();
     if (activeTab === "warga") fetchWarga(1);
     if (activeTab === "riwayat") fetchTransactions(1);
     if (activeTab === "b2b") fetchB2bRequests();
-  }, [activeTab, fetchWarga, fetchTransactions, fetchB2bRequests]);
+  }, [activeTab, fetchWarga, fetchTransactions, fetchB2bRequests, fetchAnalytics, analytics]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950" ref={containerRef}>
       {/* Navbar */}
-      <header className="sticky top-0 z-40 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80">
+      <header className="sticky top-0 z-40 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800  bg-card ">
         <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full">
             <ArrowLeft className="h-5 w-5" />
@@ -314,7 +374,9 @@ export default function AdminPage() {
         </Link>
         <div className="flex items-center gap-2">
           <Leaf className="h-5 w-5 text-primary" />
-          <span className="font-heading font-bold text-lg">Admin Panel RW 05</span>
+          <span className="font-heading font-bold text-lg">
+            {user?.role === "SUPER_ADMIN" ? "Super Admin Pusat" : "Admin Panel RW 05"}
+          </span>
         </div>
         <div className="ml-auto flex items-center gap-3">
           <ThemeToggle />
@@ -333,63 +395,167 @@ export default function AdminPage() {
             <span className="hidden sm:inline">Log Out</span>
           </Button>
           <span className="text-xs font-bold uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
-            Admin RW
+            {user?.role === "SUPER_ADMIN" ? "SUPER ADMIN" : "Admin RW"}
           </span>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-[1400px]">
         {/* CSS-only Tab Navigation */}
-        <div className="flex bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl p-1 mb-6 border border-slate-200 dark:border-slate-800">
+        <div className="flex bg-slate-200/50  rounded-lg p-1 mb-6 border border-slate-200 dark:border-slate-800 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
+              activeTab === "overview"
+                ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-card"
+            }`}
+          >
+            <Activity className="h-4 w-4" /> Overview
+          </button>
           <button
             onClick={() => setActiveTab("input")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
               activeTab === "input"
                 ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5"
+                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-card"
             }`}
           >
             <Recycle className="h-4 w-4" /> Input Sampah
           </button>
           <button
             onClick={() => setActiveTab("warga")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
               activeTab === "warga"
                 ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5"
+                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-card"
             }`}
           >
             <User className="h-4 w-4" /> Daftar Warga
           </button>
           <button
             onClick={() => setActiveTab("riwayat")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
               activeTab === "riwayat"
                 ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5"
+                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-card"
             }`}
           >
             <History className="h-4 w-4" /> Riwayat
           </button>
           <button
             onClick={() => setActiveTab("b2b")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-sm font-semibold transition-all ${
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
               activeTab === "b2b"
                 ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5"
+                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-card"
             }`}
           >
             <Building2 className="h-4 w-4 text-sky-500" /> Pesanan B2B
           </button>
+          <button
+            onClick={() => setActiveTab("produk")}
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
+              activeTab === "produk"
+                ? "bg-white dark:bg-slate-900 shadow-sm text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-card"
+            }`}
+          >
+            <Package className="h-4 w-4 text-purple-500" /> Kelola Produk
+          </button>
         </div>
+
+        {/* TAB 0: OVERVIEW */}
+        {activeTab === "overview" && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+                <h3 className="text-muted-foreground text-sm font-medium">Total Daur Ulang</h3>
+                <p className="text-4xl font-black mt-2 text-foreground">
+                  {analytics?.total_weight_kg || 0} <span className="text-lg text-emerald-500">kg</span>
+                </p>
+              </div>
+              <div className="admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+                <h3 className="text-muted-foreground text-sm font-medium">Total Warga Terdaftar</h3>
+                <p className="text-4xl font-black mt-2 text-foreground">
+                  {analytics?.total_citizens || 0}
+                </p>
+              </div>
+              <div className="admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+                <h3 className="text-muted-foreground text-sm font-medium">Total Poin Didistribusikan</h3>
+                <p className="text-4xl font-black mt-2 text-foreground">
+                  {analytics?.total_points_awarded || 0}
+                </p>
+              </div>
+              <div className="admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+                <h3 className="text-muted-foreground text-sm font-medium">Total Transaksi</h3>
+                <p className="text-4xl font-black mt-2 text-foreground">
+                  {analytics?.total_transactions || 0}
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="admin-card lg:col-span-1 space-y-6">
+                
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <Leaf className="h-5 w-5 text-emerald-500" /> Dampak Lingkungan
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-100 dark:border-emerald-900/50">
+                    <p className="text-xs text-muted-foreground font-semibold mb-1">Reduksi Karbon</p>
+                    <p className="text-xl font-black text-emerald-700 dark:text-emerald-400">-{analytics?.impact_equivalents?.carbon_saved_kg || 0} kg</p>
+                  </div>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-900/50">
+                    <p className="text-xs text-muted-foreground font-semibold mb-1">Plastik Dihindari</p>
+                    <p className="text-xl font-black text-blue-700 dark:text-blue-400">-{analytics?.impact_equivalents?.plastic_saved_kg || 0} kg</p>
+                  </div>
+                  <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-100 dark:border-amber-900/50">
+                    <p className="text-xs text-muted-foreground font-semibold mb-1">Pohon Diselamatkan</p>
+                    <p className="text-xl font-black text-amber-700 dark:text-amber-400">{analytics?.impact_equivalents?.trees_saved || 0} Pohon</p>
+                  </div>
+                  <div className="p-4 bg-purple-50 dark:bg-purple-950/30 rounded-xl border border-purple-100 dark:border-purple-900/50">
+                    <p className="text-xs text-muted-foreground font-semibold mb-1">Potensi Biofuel</p>
+                    <p className="text-xl font-black text-purple-700 dark:text-purple-400">{analytics?.impact_equivalents?.biofuel_liters || 0} L</p>
+                  </div>
+                </div>
+              </div>
+              </div>
+              
+              <div className="lg:col-span-2 admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <Recycle className="h-5 w-5 text-primary" /> Distribusi Kategori
+                </h3>
+                <div className="space-y-4">
+                  {analytics?.category_breakdown?.map((cat: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-primary" />
+                        <span className="font-medium text-sm">{cat.category_name}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-muted-foreground">{cat.transaction_count} setoran</span>
+                        <span className="font-bold w-16 text-right">{cat.weight_kg} kg</span>
+                      </div>
+                    </div>
+                  ))}
+                  {(!analytics?.category_breakdown || analytics.category_breakdown.length === 0) && (
+                    <p className="text-muted-foreground text-sm py-4 text-center">Belum ada data kategori sampah.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ========================================== */}
         {/* TAB 1 CONTENT: INPUT SAMPAH */}
         {/* ========================================== */}
         {activeTab === "input" && (
-          <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="admin-card max-w-2xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Step 1: Cari User */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center text-sm font-black">
                   1
@@ -412,7 +578,34 @@ export default function AdminPage() {
                   {inputSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                   Cari
                 </Button>
+                <Button onClick={() => setShowScanner(true)} variant="outline" className="gap-2 text-primary border-primary hover:bg-primary/10">
+                  <Camera className="h-4 w-4" />
+                  Scan
+                </Button>
               </div>
+
+              {scanError && (
+                <p className="text-sm text-red-500 font-medium mt-2">{scanError}</p>
+              )}
+
+              {showScanner && (
+                <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+                  <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
+                    <div className="p-4 bg-slate-100 dark:bg-slate-800 flex justify-between items-center rounded-t-2xl">
+                      <h3 className="font-bold text-foreground flex items-center gap-2"><QrCode className="h-4 w-4" /> Scan QR Warga</h3>
+                      <button onClick={() => setShowScanner(false)} className="text-muted-foreground hover:text-foreground">
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                    <div className="p-0 bg-black aspect-square">
+                      <Scanner onScan={handleScan} />
+                    </div>
+                    <div className="p-4 text-center bg-white dark:bg-slate-900 rounded-b-2xl">
+                      <p className="text-sm text-muted-foreground">Arahkan kamera ke QR Code warga.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Search Results */}
               {inputSearchResults.length > 0 && !selectedUser && (
@@ -465,7 +658,7 @@ export default function AdminPage() {
 
             {/* Step 2: Form Transaksi */}
             <div
-              className={`bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 transition-opacity ${
+              className={`bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6 transition-opacity ${
                 !selectedUser ? "opacity-50 pointer-events-none" : ""
               }`}
             >
@@ -578,7 +771,7 @@ export default function AdminPage() {
         {/* TAB 2 CONTENT: DAFTAR WARGA */}
         {/* ========================================== */}
         {activeTab === "warga" && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="admin-card space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="flex gap-2">
               <Input
                 placeholder="Cari nama atau email warga..."
@@ -598,10 +791,10 @@ export default function AdminPage() {
               </div>
             ) : (
               <>
-                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-medium">
+                      <thead className="bg-slate-50  text-foreground dark:text-foreground font-medium">
                         <tr>
                           <th className="px-6 py-4">Warga</th>
                           <th className="px-6 py-4 text-center">Total Transaksi</th>
@@ -687,8 +880,8 @@ export default function AdminPage() {
             {/* Slide-out Warga Detail */}
             {selectedCitizenDetail && (
               <>
-                <div className="fixed inset-y-0 right-0 z-50 w-full md:w-[420px] bg-white dark:bg-slate-950 shadow-2xl border-l border-slate-200 dark:border-slate-800 overflow-y-auto transform transition-transform duration-300 translate-x-0">
-                  <div className="sticky top-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between z-10">
+                <div className="fixed inset-y-0 right-0 z-50 w-full md:w-[420px] bg-white dark:bg-slate-950 shadow-sm border-l border-slate-200 dark:border-slate-800 overflow-y-auto transform transition-transform duration-300 translate-x-0">
+                  <div className="sticky top-0 bg-card   p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between z-10">
                     <h3 className="font-heading font-bold text-lg">Detail Warga</h3>
                     <Button
                       variant="ghost"
@@ -716,7 +909,7 @@ export default function AdminPage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mb-8">
-                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-center">
+                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
                         <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-bold">
                           Total Poin
                         </p>
@@ -724,7 +917,7 @@ export default function AdminPage() {
                           {selectedCitizenDetail.eco_points}
                         </p>
                       </div>
-                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 text-center">
+                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
                         <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-bold">
                           Transaksi
                         </p>
@@ -741,14 +934,14 @@ export default function AdminPage() {
                     <div className="space-y-3">
                       {!selectedCitizenDetail.transactions_as_citizen ||
                       selectedCitizenDetail.transactions_as_citizen.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-6 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 border-dashed">
+                        <p className="text-sm text-muted-foreground text-center py-6 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 border-dashed">
                           Belum ada transaksi.
                         </p>
                       ) : (
                         selectedCitizenDetail.transactions_as_citizen.map((tx: any) => (
                           <div
                             key={tx.id}
-                            className="bg-slate-50 dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800"
+                            className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-800"
                           >
                             <div className="flex justify-between items-start mb-2">
                               <span className="font-semibold text-sm">
@@ -780,7 +973,7 @@ export default function AdminPage() {
                 </div>
                 {/* Backdrop */}
                 <div
-                  className="fixed inset-0 z-40 bg-black/20 dark:bg-black/50 backdrop-blur-sm transition-opacity"
+                  className="fixed inset-0 z-40 bg-black/20 dark:bg-black/50  transition-opacity"
                   onClick={() => setSelectedCitizenDetail(null)}
                 />
               </>
@@ -792,17 +985,17 @@ export default function AdminPage() {
         {/* TAB 3 CONTENT: RIWAYAT TRANSAKSI */}
         {/* ========================================== */}
         {activeTab === "riwayat" && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <div className="admin-card space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {txLoading ? (
               <div className="flex justify-center p-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
               <>
-                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 font-medium">
+                      <thead className="bg-slate-50  text-foreground dark:text-foreground font-medium">
                         <tr>
                           <th className="px-6 py-4">Warga & Status</th>
                           <th className="px-6 py-4">Kategori & Berat</th>
@@ -912,8 +1105,8 @@ export default function AdminPage() {
         {/* TAB 4 CONTENT: PESANAN B2B INDUSTRI */}
         {/* ========================================== */}
         {activeTab === "b2b" && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <div className="admin-card space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-sky-500" />
@@ -950,9 +1143,9 @@ export default function AdminPage() {
                           Kategori: <strong className="text-foreground">{reqItem.category_name}</strong> · Target: <strong className="text-primary">{reqItem.target_weight_kg} kg</strong>
                         </p>
                         {reqItem.notes && (
-                          <p className="text-xs text-slate-500 italic">Catatan: {reqItem.notes}</p>
+                          <p className="text-xs text-foreground italic">Catatan: {reqItem.notes}</p>
                         )}
-                        <p className="text-[10px] text-slate-400">
+                        <p className="text-[10px] text-foreground">
                           Dikirim pada: {new Date(reqItem.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
@@ -969,7 +1162,7 @@ export default function AdminPage() {
                         </Button>
                       ) : (
                         <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 text-center">
-                          ✓ Pesanan Disetujui
+                           Pesanan Disetujui
                         </span>
                       )}
                     </div>
@@ -978,6 +1171,12 @@ export default function AdminPage() {
               )}
             </div>
           </div>
+        )}
+        {/* ========================================== */}
+        {/* TAB 5 CONTENT: KELOLA PRODUK */}
+        {/* ========================================== */}
+        {activeTab === "produk" && (
+          <ProductTab token={token} />
         )}
       </main>
     </div>

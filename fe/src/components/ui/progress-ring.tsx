@@ -38,7 +38,7 @@ export function ProgressRing({
           fill="none"
           stroke="currentColor"
           strokeWidth={strokeWidth}
-          className="text-slate-200 dark:text-slate-700"
+          className="text-foreground dark:text-foreground"
         />
         {/* Progress circle */}
         <circle

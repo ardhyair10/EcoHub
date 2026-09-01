@@ -109,7 +109,7 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       {/* Header */}
-      <header className="sticky top-0 z-50 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80">
+      <header className="sticky top-0 z-50 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800  bg-card ">
         <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full">
             <ArrowLeft className="h-5 w-5" />
@@ -121,11 +121,11 @@ export default function EventsPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-primary via-emerald-600 to-teal-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-primary/20 mb-8 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-primary via-emerald-600 to-teal-700 rounded-lg p-6 sm:p-8 text-white shadow-sm shadow-primary/20 mb-8 relative overflow-hidden">
           <div className="max-w-lg space-y-2 relative z-10">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-xs font-bold uppercase">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-card  text-xs font-bold uppercase">
               <Sparkles className="h-3.5 w-3.5 text-accent" /> Event Komunitas
             </span>
             <h1 className="text-3xl font-heading font-black">Ikut Aksi, Raih Poin!</h1>
@@ -138,7 +138,7 @@ export default function EventsPage() {
         {/* Message Banner */}
         {message && (
           <div
-            className={`mb-6 p-4 rounded-2xl text-sm font-medium flex items-center gap-2 ${
+            className={`mb-6 p-4 rounded-lg text-sm font-medium flex items-center gap-2 ${
               message.type === "success"
                 ? "bg-primary/10 text-primary border border-primary/20"
                 : "bg-destructive/10 text-destructive border border-destructive/20"
@@ -155,8 +155,8 @@ export default function EventsPage() {
             <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         ) : events.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800">
-            <Users className="h-14 w-14 text-slate-300 dark:text-slate-700 mx-auto mb-3" />
+          <div className="bg-white dark:bg-slate-900 rounded-lg p-12 text-center border border-slate-200 dark:border-slate-800">
+            <Users className="h-14 w-14 text-foreground dark:text-foreground mx-auto mb-3" />
             <p className="font-semibold text-muted-foreground text-lg">Belum Ada Event</p>
             <p className="text-sm text-muted-foreground mt-1">Kegiatan volunteer mendatang akan muncul di sini.</p>
           </div>
@@ -175,7 +175,7 @@ export default function EventsPage() {
                 return (
                   <div
                     key={ev.id}
-                    className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow"
+                    className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow"
                   >
                     <div className="space-y-3">
                       <div className="flex items-start justify-between gap-2">
@@ -190,7 +190,7 @@ export default function EventsPage() {
                                 : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
                             }`}
                           >
-                            {isAttended ? "✓ Hadir" : "Terdaftar"}
+                            {isAttended ? " Hadir" : "Terdaftar"}
                           </span>
                         )}
                       </div>
@@ -261,8 +261,8 @@ export default function EventsPage() {
 
       {/* QR Ticket Modal */}
       {selectedTicket && (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setSelectedTicket(null)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 max-w-sm w-full text-center space-y-4 relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] bg-black/60  flex items-center justify-center p-4" onClick={() => setSelectedTicket(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 max-w-sm w-full text-center space-y-4 relative shadow-sm" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setSelectedTicket(null)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
               <X className="h-5 w-5" />
             </button>
@@ -272,7 +272,7 @@ export default function EventsPage() {
             <h3 className="font-heading font-bold text-lg text-foreground">Tiket Presensi Event</h3>
             <p className="text-xs text-muted-foreground">{selectedTicket.event.title}</p>
 
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 inline-block shadow-sm">
+            <div className="bg-white p-4 rounded-lg border border-slate-200 inline-block shadow-sm">
               <QRCodeSVG
                 value={JSON.stringify({ event_id: selectedTicket.event_id, citizen_id: currentUserId })}
                 size={160}

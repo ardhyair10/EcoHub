@@ -64,7 +64,7 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout>
-      <Card className="w-full border-white/20 shadow-2xl backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 transition-all duration-300">
+      <Card className="w-full border-0 shadow-none bg-transparent">
         <CardHeader className="space-y-2 text-center pb-6">
           <div className="flex justify-center mb-2">
             <div className="p-3 bg-primary/10 rounded-full">
@@ -95,7 +95,7 @@ export default function RegisterPage() {
                 required 
                 value={formData.name} 
                 onChange={handleChange}
-                className="bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+                className="bg-card  border-border dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
               />
             </div>
             
@@ -109,7 +109,7 @@ export default function RegisterPage() {
                 required 
                 value={formData.email} 
                 onChange={handleChange}
-                className="bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+                className="bg-card  border-border dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
               />
             </div>
             
@@ -122,7 +122,7 @@ export default function RegisterPage() {
                 required 
                 value={formData.password} 
                 onChange={handleChange}
-                className="bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+                className="bg-card  border-border dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
               />
             </div>
 
@@ -131,7 +131,7 @@ export default function RegisterPage() {
               <select 
                 id="role" 
                 name="role" 
-                className="flex h-10 w-full rounded-md border border-white/30 dark:border-slate-800 bg-white/50 dark:bg-slate-950/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                className="flex h-10 w-full rounded-md border border-border dark:border-slate-800 bg-card  px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                 value={formData.role} 
                 onChange={handleChange}
               >

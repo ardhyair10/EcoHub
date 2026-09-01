@@ -45,10 +45,7 @@ function ResetPasswordForm() {
       const data = await safeFetchJson(res);
 
       if (data.success) {
-        setSuccess(data.message || "Password berhasil diubah!");
-        setTimeout(() => {
-          router.push("/login");
-        }, 2000);
+        router.push("/login");
       } else {
         setError(data.message || "Gagal mengubah password");
       }
@@ -61,7 +58,7 @@ function ResetPasswordForm() {
 
   if (success) {
     return (
-      <Card className="w-full border-white/20 shadow-2xl backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 p-8 text-center">
+      <Card className="w-full border-0 shadow-none bg-transparent p-8 text-center">
         <div className="flex justify-center mb-6">
           <div className="p-4 bg-emerald-500/20 rounded-full">
             <ShieldCheck className="w-12 h-12 text-emerald-500" />
@@ -75,7 +72,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <Card className="w-full border-white/20 shadow-2xl backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 transition-all duration-300">
+    <Card className="w-full border-0 shadow-none bg-transparent">
       <CardHeader className="space-y-2 text-center pb-6">
         <div className="flex justify-center mb-2">
           <div className="p-3 bg-primary/10 rounded-full">
@@ -101,12 +98,12 @@ function ResetPasswordForm() {
             <Label className="text-foreground font-semibold self-start">Kode OTP (6 digit)</Label>
             <InputOTP maxLength={6} value={otp} onChange={setOtp} disabled={loading}>
               <InputOTPGroup>
-                <InputOTPSlot index={0} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50" />
-                <InputOTPSlot index={1} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50" />
-                <InputOTPSlot index={2} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50" />
-                <InputOTPSlot index={3} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50" />
-                <InputOTPSlot index={4} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50" />
-                <InputOTPSlot index={5} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50" />
+                <InputOTPSlot index={0} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-card " />
+                <InputOTPSlot index={1} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-card " />
+                <InputOTPSlot index={2} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-card " />
+                <InputOTPSlot index={3} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-card " />
+                <InputOTPSlot index={4} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-card " />
+                <InputOTPSlot index={5} className="w-12 h-14 text-xl border-slate-300 dark:border-slate-700 bg-card " />
               </InputOTPGroup>
             </InputOTP>
           </div>
@@ -121,7 +118,7 @@ function ResetPasswordForm() {
               required 
               value={password} 
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+              className="bg-card  border-border dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
             />
           </div>
           

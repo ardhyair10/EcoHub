@@ -35,7 +35,7 @@ export function ImpactCertificate({
 
   const certNumber = `ECO-2026-${Math.abs(userName.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) * 37) % 90000 + 10000}`;
 
-  const shareText = `🌱 SERTIFIKAT KONTRIBUSI ECO HUB\n\nNama: ${userName}\nTotal Poin: ${totalPoints.toLocaleString()} pts\nSampah Didaur Ulang: ${estWeightKg} kg\nCO₂ Dihemat: -${estCarbonSaved} kg\n\nNomor Sertifikat: ${certNumber}\nTerverifikasi di Eco Hub (ITechno Cup 2026)`;
+  const shareText = ` SERTIFIKAT KONTRIBUSI ECO HUB\n\nNama: ${userName}\nTotal Poin: ${totalPoints.toLocaleString()} pts\nSampah Didaur Ulang: ${estWeightKg} kg\nCO₂ Dihemat: -${estCarbonSaved} kg\n\nNomor Sertifikat: ${certNumber}\nTerverifikasi di Eco Hub (ITechno Cup 2026)`;
 
   const handleShareSocial = async () => {
     if (navigator.share) {
@@ -100,7 +100,7 @@ export function ImpactCertificate({
         <!-- Cap Stempel Basah -->
         <circle cx="790" cy="535" r="45" fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4 2" opacity="0.8"/>
         <circle cx="790" cy="535" r="38" fill="none" stroke="#10b981" stroke-width="1" opacity="0.6"/>
-        <text x="790" y="525" font-family="sans-serif" font-size="9" font-weight="bold" fill="#10b981" text-anchor="middle">★ ECO HUB ★</text>
+        <text x="790" y="525" font-family="sans-serif" font-size="9" font-weight="bold" fill="#10b981" text-anchor="middle"> ECO HUB </text>
         <text x="790" y="540" font-family="sans-serif" font-size="10" font-weight="bold" fill="#34d399" text-anchor="middle">TERVERIFIKASI</text>
         <text x="790" y="552" font-family="sans-serif" font-size="8" fill="#10b981" text-anchor="middle">POS RW 05 DIGITAL</text>
 
@@ -146,7 +146,7 @@ export function ImpactCertificate({
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] bg-slate-950/80  flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       {/* Outer Certificate Box */}
@@ -163,14 +163,14 @@ export function ImpactCertificate({
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 p-2 rounded-full transition-all"
+            className="absolute top-5 right-5 text-foreground hover:text-white bg-card hover:bg-card p-2 rounded-full transition-all"
           >
             <X className="h-4 w-4" />
           </button>
 
           {/* Official Emblem & Header */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 p-0.5 shadow-lg shadow-amber-500/20 mx-auto">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 p-0.5 shadow-lg shadow-amber-500/20 mx-auto">
               <div className="w-full h-full bg-slate-950 rounded-[0.85rem] flex items-center justify-center">
                 <Medal className="h-7 w-7 text-amber-400" />
               </div>
@@ -185,14 +185,14 @@ export function ImpactCertificate({
             <h2 className="text-2xl sm:text-3xl font-heading font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 tracking-tight">
               PAHLAWAN LINGKUNGAN
             </h2>
-            <p className="text-[11px] text-slate-400 uppercase tracking-wider font-mono">
+            <p className="text-[11px] text-foreground uppercase tracking-wider font-mono">
               NO: {certNumber}
             </p>
           </div>
 
           {/* Recipient Ribbon */}
           <div className="bg-gradient-to-r from-transparent via-amber-500/10 to-transparent py-4 text-center border-y border-amber-500/20">
-            <p className="text-xs text-slate-400 font-medium">Sertifikat ini secara sah diberikan kepada:</p>
+            <p className="text-xs text-foreground font-medium">Sertifikat ini secara sah diberikan kepada:</p>
             <p className="text-2xl sm:text-3xl font-heading font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-white to-emerald-300 mt-1">
               {userName}
             </p>
@@ -203,36 +203,36 @@ export function ImpactCertificate({
 
           {/* Impact Metrics Grid */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gradient-to-br from-slate-900 to-slate-900/80 border border-amber-500/20 rounded-2xl p-3.5 text-center shadow-inner">
+            <div className="bg-card border border-border/80 border border-amber-500/20 rounded-lg p-3.5 text-center shadow-inner">
               <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto mb-2">
                 <Award className="h-4 w-4 text-amber-400" />
               </div>
               <p className="text-xl font-black text-amber-400">{totalPoints.toLocaleString()}</p>
-              <p className="text-[10px] text-slate-400 font-medium">Eco-Points Perolehan</p>
+              <p className="text-[10px] text-foreground font-medium">Eco-Points Perolehan</p>
             </div>
 
-            <div className="bg-gradient-to-br from-slate-900 to-slate-900/80 border border-emerald-500/20 rounded-2xl p-3.5 text-center shadow-inner">
+            <div className="bg-card border border-border/80 border border-emerald-500/20 rounded-lg p-3.5 text-center shadow-inner">
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto mb-2">
                 <Scale className="h-4 w-4 text-emerald-400" />
               </div>
               <p className="text-xl font-black text-emerald-400">{estWeightKg} kg</p>
-              <p className="text-[10px] text-slate-400 font-medium">Sampah Didaur Ulang</p>
+              <p className="text-[10px] text-foreground font-medium">Sampah Didaur Ulang</p>
             </div>
 
-            <div className="bg-gradient-to-br from-slate-900 to-slate-900/80 border border-teal-500/20 rounded-2xl p-3.5 text-center shadow-inner">
+            <div className="bg-card border border-border/80 border border-teal-500/20 rounded-lg p-3.5 text-center shadow-inner">
               <div className="w-8 h-8 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center mx-auto mb-2">
                 <TreePine className="h-4 w-4 text-teal-400" />
               </div>
               <p className="text-xl font-black text-teal-400">-{estCarbonSaved} kg</p>
-              <p className="text-[10px] text-slate-400 font-medium">Penghematan CO₂</p>
+              <p className="text-[10px] text-foreground font-medium">Penghematan CO₂</p>
             </div>
 
-            <div className="bg-gradient-to-br from-slate-900 to-slate-900/80 border border-sky-500/20 rounded-2xl p-3.5 text-center shadow-inner">
+            <div className="bg-card border border-border/80 border border-sky-500/20 rounded-lg p-3.5 text-center shadow-inner">
               <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center mx-auto mb-2">
                 <Droplets className="h-4 w-4 text-sky-400" />
               </div>
               <p className="text-xl font-black text-sky-400">-{estPlasticSaved} kg</p>
-              <p className="text-[10px] text-slate-400 font-medium">Plastik Dihemat</p>
+              <p className="text-[10px] text-foreground font-medium">Plastik Dihemat</p>
             </div>
           </div>
 
@@ -247,7 +247,7 @@ export function ImpactCertificate({
                 <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1">
                   <ShieldCheck className="h-3 w-3" /> QR Terverifikasi
                 </p>
-                <p className="text-[9px] text-slate-400 leading-tight">Scan keaslian dokumen</p>
+                <p className="text-[9px] text-foreground leading-tight">Scan keaslian dokumen</p>
               </div>
             </div>
 
@@ -256,7 +256,7 @@ export function ImpactCertificate({
               {/* Cap Stempel Basah */}
               <div className="absolute -top-3 right-6 w-14 h-14 border border-emerald-500/50 rounded-full flex items-center justify-center rotate-[-15deg] pointer-events-none opacity-70 bg-emerald-500/5">
                 <span className="text-[7px] font-black text-emerald-400 uppercase text-center leading-tight">
-                  POS RW 05<br/>★ TERVERIFIKASI ★<br/>ECOHUB
+                  POS RW 05<br/> TERVERIFIKASI <br/>ECOHUB
                 </span>
               </div>
               
@@ -266,7 +266,7 @@ export function ImpactCertificate({
               </svg>
 
               <p className="text-xs font-bold text-white leading-none">Ricki Gilang Saputra, S.T.</p>
-              <p className="text-[9px] text-slate-400 mt-0.5">Ketua Program Ekonomi Sirkular</p>
+              <p className="text-[9px] text-foreground mt-0.5">Ketua Program Ekonomi Sirkular</p>
             </div>
           </div>
 
@@ -274,7 +274,7 @@ export function ImpactCertificate({
           <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
             <Button
               onClick={handleDownloadPDF}
-              className="flex-1 font-bold gap-2 h-11 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:to-yellow-600 text-slate-950 shadow-lg shadow-amber-500/20"
+              className="flex-1 font-bold gap-2 h-11 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 hover:from-amber-600 hover:to-yellow-600 text-foreground shadow-lg shadow-amber-500/20"
             >
               <Download className="h-4 w-4" /> Unduh Sertifikat (PDF)
             </Button>

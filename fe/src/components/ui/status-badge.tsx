@@ -33,7 +33,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 };
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
-  const config = statusConfig[status] || { label: status, className: "bg-slate-100 text-slate-700" };
+  const config = statusConfig[status] || { label: status, className: "bg-slate-100 text-foreground" };
   
   return (
     <span

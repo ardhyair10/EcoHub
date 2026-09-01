@@ -120,7 +120,7 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-inter">
       {/* Navbar */}
-      <nav className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <nav className="sticky top-0 z-40 bg-card   border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -135,7 +135,7 @@ export default function HistoryPage() {
               <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
                 <Leaf className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <span className="font-heading font-bold text-xl text-slate-900 dark:text-white">
+              <span className="font-heading font-bold text-xl text-foreground ">
                 Riwayat Transaksi
               </span>
             </div>
@@ -146,40 +146,40 @@ export default function HistoryPage() {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center text-amber-600 dark:text-amber-400">
                 <Award className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Poin Bulan Ini</p>
-                <p className="font-heading font-bold text-2xl text-slate-900 dark:text-white">
+                <p className="text-sm text-foreground dark:text-foreground">Poin Bulan Ini</p>
+                <p className="font-heading font-bold text-2xl text-foreground ">
                   {stats.totalPoints.toLocaleString("id-ID")}
                 </p>
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                 <Scale className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Berat Bulan Ini</p>
-                <p className="font-heading font-bold text-2xl text-slate-900 dark:text-white">
+                <p className="text-sm text-foreground dark:text-foreground">Berat Bulan Ini</p>
+                <p className="font-heading font-bold text-2xl text-foreground ">
                   {stats.totalWeight.toFixed(1)} <span className="text-base font-normal">kg</span>
                 </p>
               </div>
             </div>
           </div>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+          <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center text-sky-600 dark:text-sky-400">
+              <div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center text-sky-600 dark:text-sky-400">
                 <Recycle className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Total Transaksi</p>
-                <p className="font-heading font-bold text-2xl text-slate-900 dark:text-white">
+                <p className="text-sm text-foreground dark:text-foreground">Total Transaksi</p>
+                <p className="font-heading font-bold text-2xl text-foreground ">
                   {stats.totalTransactions}
                 </p>
               </div>
@@ -189,7 +189,7 @@ export default function HistoryPage() {
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-          <h2 className="font-heading font-semibold text-xl text-slate-800 dark:text-slate-200 w-full sm:w-auto">
+          <h2 className="font-heading font-semibold text-xl text-foreground dark:text-foreground w-full sm:w-auto">
             Daftar Setoran
           </h2>
           <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
@@ -203,7 +203,7 @@ export default function HistoryPage() {
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${
                   statusFilter === status
                     ? "bg-emerald-600 text-white shadow-sm"
-                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
+                    : "bg-white dark:bg-slate-800 text-foreground dark:text-foreground hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
                 }`}
               >
                 {status === "ALL" ? "Semua" : status === "VALIDATED" ? "Divalidasi" : "Menunggu"}
@@ -222,19 +222,19 @@ export default function HistoryPage() {
             {transactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-shadow"
               >
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                   {/* Left Section: Icon & Main Info */}
                   <div className="flex items-start gap-4">
-                    <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center shrink-0">
+                    <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center shrink-0">
                       <Recycle className="h-7 w-7 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                      <h3 className="font-heading font-semibold text-lg text-slate-900 dark:text-white mb-1">
+                      <h3 className="font-heading font-semibold text-lg text-foreground  mb-1">
                         {transaction.waste_category?.name || "Kategori Dihapus"}
                       </h3>
-                      <div className="flex items-center text-sm text-slate-500 dark:text-slate-400 gap-4 mb-2">
+                      <div className="flex items-center text-sm text-foreground dark:text-foreground gap-4 mb-2">
                         <div className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
                           {formatDate(transaction.created_at)}
@@ -242,7 +242,7 @@ export default function HistoryPage() {
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-3 mt-3">
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm font-medium text-foreground dark:text-foreground">
                           <Scale className="h-4 w-4 text-emerald-500" />
                           {transaction.weight} kg
                         </div>
@@ -260,14 +260,14 @@ export default function HistoryPage() {
                   {/* Right Section: Admin, Notes, Photo */}
                   <div className="flex flex-col items-start md:items-end gap-3 md:w-64 shrink-0">
                     {transaction.admin && (
-                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 w-full justify-start md:justify-end bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl">
-                        <User className="h-4 w-4 text-slate-400" />
+                      <div className="flex items-center gap-2 text-sm text-foreground dark:text-foreground w-full justify-start md:justify-end bg-slate-50  px-3 py-2 rounded-xl">
+                        <User className="h-4 w-4 text-foreground" />
                         <span className="truncate">Admin: {transaction.admin.name}</span>
                       </div>
                     )}
                     
                     {transaction.notes && (
-                      <div className="text-sm text-slate-500 dark:text-slate-400 w-full text-left md:text-right italic bg-slate-50 dark:bg-slate-800/30 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                      <div className="text-sm text-foreground dark:text-foreground w-full text-left md:text-right italic bg-slate-50  px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800">
                         "{transaction.notes}"
                       </div>
                     )}
@@ -304,7 +304,7 @@ export default function HistoryPage() {
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                <span className="text-sm font-medium text-foreground dark:text-foreground">
                   Halaman {page} dari {totalPages}
                 </span>
                 <Button
@@ -320,14 +320,14 @@ export default function HistoryPage() {
             )}
           </div>
         ) : (
-          <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm">
+          <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm">
             <div className="mx-auto w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-              <Recycle className="h-10 w-10 text-slate-400" />
+              <Recycle className="h-10 w-10 text-foreground" />
             </div>
-            <h3 className="text-lg font-heading font-semibold text-slate-900 dark:text-white mb-2">
+            <h3 className="text-lg font-heading font-semibold text-foreground  mb-2">
               Belum ada transaksi
             </h3>
-            <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            <p className="text-foreground dark:text-foreground max-w-md mx-auto">
               Anda belum memiliki riwayat setoran sampah{statusFilter !== "ALL" && " untuk status ini"}. 
               Mulai setorkan sampah Anda untuk mengumpulkan poin!
             </p>
@@ -338,7 +338,7 @@ export default function HistoryPage() {
       {/* Photo Modal */}
       {selectedImage && (
         <div 
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 bg-black/80  flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setSelectedImage(null)}
         >
           <div 
@@ -347,11 +347,11 @@ export default function HistoryPage() {
           >
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute -top-12 right-0 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
+              className="absolute -top-12 right-0 p-2 bg-card hover:bg-card text-foreground rounded-full transition-colors"
             >
               <X className="h-6 w-6" />
             </button>
-            <div className="relative w-full overflow-hidden rounded-2xl bg-black/50 ring-1 ring-white/20">
+            <div className="relative w-full overflow-hidden rounded-lg bg-black/50 ring-1 ring-white/20">
               <img
                 src={selectedImage}
                 alt="Foto sampah ukuran penuh"

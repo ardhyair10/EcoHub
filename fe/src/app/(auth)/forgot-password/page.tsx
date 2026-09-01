@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthLayout>
-      <Card className="w-full border-white/20 shadow-2xl backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 transition-all duration-300">
+      <Card className="w-full border-0 shadow-none bg-transparent">
         <CardHeader className="space-y-2 text-center pb-6">
           <div className="flex justify-center mb-2">
             <div className="p-3 bg-primary/10 rounded-full">
@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
                 required 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
-                className="bg-white/50 dark:bg-slate-950/50 border-white/30 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
+                className="bg-card  border-border dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 transition-colors"
               />
             </div>
             

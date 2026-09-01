@@ -91,7 +91,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="sticky top-0 z-50 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80">
+      <header className="sticky top-0 z-50 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800  bg-card ">
         <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full">
             <ArrowLeft className="h-5 w-5" />
@@ -137,7 +137,7 @@ export default function LeaderboardPage() {
           </div>
         ) : leaderboard.length === 0 ? (
           <div className="text-center py-16">
-            <Trophy className="h-14 w-14 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
+            <Trophy className="h-14 w-14 text-foreground dark:text-foreground mx-auto mb-4" />
             <p className="font-semibold text-muted-foreground text-lg">Belum ada data</p>
             <p className="text-sm text-muted-foreground mt-1">Belum ada transaksi di bulan ini.</p>
           </div>
@@ -153,7 +153,7 @@ export default function LeaderboardPage() {
                 return (
                   <div
                     key={`podium-rank-${actualRank}-${entry.user?.id || displayIdx}`}
-                    className={`flex flex-col items-center gap-2 p-4 rounded-3xl border ${
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border ${
                       medalBg[actualRank - 1]
                     } ${displayIdx === 1 ? "transform scale-105 shadow-lg" : ""} ${isMe ? "ring-2 ring-primary" : ""}`}
                   >
@@ -177,7 +177,7 @@ export default function LeaderboardPage() {
 
             {/* Rest of Leaderboard */}
             {rest.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {rest.map((entry) => {
                     const isMe = entry.user.id === currentUserId;
@@ -214,7 +214,7 @@ export default function LeaderboardPage() {
 
             {/* Badges Section */}
             {badges.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+              <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <Medal className="h-5 w-5 text-accent" />
                   <h3 className="font-heading font-bold text-foreground">Badge Pencapaian</h3>

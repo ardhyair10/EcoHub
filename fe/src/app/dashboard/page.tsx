@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
@@ -17,6 +17,8 @@ import { ImpactCertificate } from "@/components/impact-certificate";
 import { NotificationBell } from "@/components/notification-bell";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { safeFetchJson } from "@/lib/api";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -76,6 +78,19 @@ export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showCert, setShowCert] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (!loading) {
+      gsap.from(".dashboard-card", {
+        y: 30,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
+      });
+    }
+  }, { scope: containerRef, dependencies: [loading] });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -99,7 +114,7 @@ export default function DashboardPage() {
           router.push("/login");
           return;
         }
-        if (userData.data?.role === "ADMIN_RW") {
+        if (userData.data?.role === "ADMIN_RW" || userData.data?.role === "SUPER_ADMIN") {
           router.push("/admin");
           return;
         }
@@ -139,18 +154,11 @@ export default function DashboardPage() {
 
     fetchData();
 
-    // Live real-time polling for Eco Analytics every 5s
-    const analyticsInterval = setInterval(async () => {
-      try {
-        const res = await fetch(`${API}/api/analytics/community`);
-        if (res.ok) {
-          const ad = await safeFetchJson(res);
-          if (ad.success) setAnalytics(ad.data);
-        }
-      } catch {}
+    const dashboardInterval = setInterval(() => {
+      fetchData();
     }, 5000);
 
-    return () => clearInterval(analyticsInterval);
+    return () => clearInterval(dashboardInterval);
   }, [router]);
 
   const handleLogout = () => {
@@ -164,7 +172,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted-foreground font-medium">Memuat dashboard...</p>
+          <p className="text-muted-foreground font-medium animate-pulse">Memuat dashboard...</p>
         </div>
       </div>
     );
@@ -175,8 +183,7 @@ export default function DashboardPage() {
   const progressPercent = monthlyStats ? Math.min((monthlyStats.monthly_points / monthlyStats.target_points) * 100, 100) : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      {/* Impact Certificate Modal */}
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950" ref={containerRef}>
       <ImpactCertificate
         userName={user.name}
         totalPoints={user.eco_points}
@@ -186,8 +193,7 @@ export default function DashboardPage() {
         onClose={() => setShowCert(false)}
       />
 
-      {/* Navbar - same as before */}
-      <header className="sticky top-0 z-50 px-6 lg:px-10 h-16 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 backdrop-blur-xl bg-white/80 dark:bg-slate-950/80">
+      <header className="sticky top-0 z-50 px-6 lg:px-10 h-16 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-card ">
         <div className="flex items-center gap-3">
           <div className="p-1.5 bg-primary/10 rounded-lg">
             <Leaf className="h-5 w-5 text-primary" />
@@ -226,8 +232,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Greeting */}
+      <main className="container mx-auto px-4 py-8 md:py-12 max-w-[1400px]">
         <div className="mb-8">
           <h1 className="text-3xl font-heading font-black text-foreground">
             Halo, {user.name.split(" ")[0]}
@@ -238,10 +243,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: QR + Progress */}
           <div className="lg:col-span-1 flex flex-col gap-6">
-            {/* QR Card */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center text-center gap-4">
+            <div className="dashboard-card bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 flex flex-col items-center text-center gap-4">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                 <Leaf className="h-6 w-6 text-primary" />
               </div>
@@ -252,7 +255,7 @@ export default function DashboardPage() {
                   {user.role === "CITIZEN" ? "Warga" : user.role === "ADMIN_RW" ? "Admin RW" : "Pembeli B2B"}
                 </span>
               </div>
-              <div className="bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
+              <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-100">
                 <QRCodeSVG value={user.qr_code_id} size={160} fgColor="#10b981" level="H" includeMargin={false} />
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -260,9 +263,8 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Monthly Progress Ring */}
             {monthlyStats && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center gap-4">
+              <div className="dashboard-card bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Target className="h-5 w-5 text-primary" />
                   <h3 className="font-heading font-bold text-foreground">Target Bulan Ini</h3>
@@ -296,19 +298,17 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Right Column */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-            {/* Stats Cards */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-primary to-emerald-600 rounded-3xl p-5 text-white shadow-lg shadow-primary/20">
+              <div className="dashboard-card bg-primary text-primary-foreground border border-border rounded-lg p-5 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <Award className="h-5 w-5 text-white/80" />
-                  <span className="text-sm font-semibold text-white/80">Total Saldo Poin</span>
+                  <Award className="h-5 w-5 text-primary-foreground/80" />
+                  <span className="text-sm font-semibold text-primary-foreground/80">Total Saldo Poin</span>
                 </div>
                 <p className="text-4xl font-black">{user.eco_points.toLocaleString()}</p>
-                <p className="text-sm text-white/70 mt-1">Saldo poin aktif dapat ditukar</p>
+                <p className="text-sm text-primary-foreground/70 mt-1">Saldo poin aktif dapat ditukar</p>
               </div>
-              <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="dashboard-card bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingUp className="h-5 w-5 text-primary" />
                   <span className="text-sm font-semibold text-muted-foreground">Total Setoran</span>
@@ -320,28 +320,27 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Button onClick={() => setShowCert(true)} className="h-auto py-4 flex flex-col gap-2 rounded-2xl bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
+              <Button onClick={() => setShowCert(true)} className="dashboard-card h-auto py-4 flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
                 <FileText className="h-6 w-6 text-primary" />
                 <span className="font-semibold text-sm">Sertifikat Impact</span>
               </Button>
               <Link href="/events" className="w-full">
-                <Button className="w-full h-auto py-4 flex flex-col gap-2 rounded-2xl bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
+                <Button className="dashboard-card w-full h-auto py-4 flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
                   <Users className="h-6 w-6 text-emerald-500" />
                   <span className="font-semibold text-sm">Volunteer Hub</span>
                 </Button>
               </Link>
               {user.role === "ADMIN_RW" || user.role === "B2B_BUYER" ? (
                 <Link href="/b2b" className="w-full">
-                  <Button className="w-full h-auto py-4 flex flex-col gap-2 rounded-2xl bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
+                  <Button className="dashboard-card w-full h-auto py-4 flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
                     <Building2 className="h-6 w-6 text-secondary" />
                     <span className="font-semibold text-sm">B2B Bulk Waste</span>
                   </Button>
                 </Link>
               ) : (
                 <Link href="/dashboard/leaderboard" className="w-full">
-                  <Button className="w-full h-auto py-4 flex flex-col gap-2 rounded-2xl bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
+                  <Button className="dashboard-card w-full h-auto py-4 flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
                     <Crown className="h-6 w-6 text-amber-500" />
                     <span className="font-semibold text-sm">Leaderboard RW</span>
                   </Button>
@@ -349,9 +348,8 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Badge Showcase */}
             {badges.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+              <div className="dashboard-card bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-accent" />
@@ -369,9 +367,8 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Mini Leaderboard */}
             {leaderboard.length > 0 && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+              <div className="dashboard-card bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2">
                     <Crown className="h-5 w-5 text-accent" />
@@ -386,7 +383,7 @@ export default function DashboardPage() {
                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                   {leaderboard.map((entry) => {
                     const isMe = entry.user.id === user.id;
-                    const medalColors = ['text-yellow-500', 'text-slate-400', 'text-amber-600'];
+                    const medalColors = ['text-yellow-500', 'text-foreground', 'text-amber-600'];
                     return (
                       <div
                         key={entry.rank}
@@ -417,43 +414,42 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Community Eco Analytics Widget */}
             {analytics && (
-              <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+              <div className="dashboard-card bg-white dark:bg-slate-900 text-foreground rounded-lg p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5 text-primary" />
                     <h3 className="font-heading font-bold text-lg text-foreground">Dampak Lingkungan (Komunitas)</h3>
                   </div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-foreground dark:text-foreground text-xs font-semibold">
                     <Activity className="h-3 w-3" />
                     Metrik Real-time
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center mb-6">
-                  <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                  <div className="bg-slate-50 border border-slate-100 dark:border-slate-800 rounded-lg p-4 flex flex-col items-center">
                     <TreePine className="h-5 w-5 text-emerald-500 mb-2 opacity-80" />
                     <p className="text-2xl font-black text-foreground">
                       <AnimatedCounter value={analytics.impact_equivalents?.trees_saved || 0} decimals={1} />
                     </p>
                     <p className="text-[11px] text-muted-foreground font-medium mt-1">Pohon Diselamatkan</p>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                  <div className="bg-slate-50 border border-slate-100 dark:border-slate-800 rounded-lg p-4 flex flex-col items-center">
                     <Wind className="h-5 w-5 text-sky-500 mb-2 opacity-80" />
                     <p className="text-2xl font-black text-foreground">
                       <AnimatedCounter value={analytics.impact_equivalents?.carbon_saved_kg || 0} decimals={1} prefix="-" suffix=" kg" />
                     </p>
                     <p className="text-[11px] text-muted-foreground font-medium mt-1">Reduksi Karbon (CO₂)</p>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                  <div className="bg-slate-50 border border-slate-100 dark:border-slate-800 rounded-lg p-4 flex flex-col items-center">
                     <Droplets className="h-5 w-5 text-blue-500 mb-2 opacity-80" />
                     <p className="text-2xl font-black text-foreground">
                       <AnimatedCounter value={analytics.impact_equivalents?.plastic_saved_kg || 0} decimals={1} prefix="-" suffix=" kg" />
                     </p>
                     <p className="text-[11px] text-muted-foreground font-medium mt-1">Plastik Murni Dihemat</p>
                   </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex flex-col items-center">
+                  <div className="bg-slate-50 border border-slate-100 dark:border-slate-800 rounded-lg p-4 flex flex-col items-center">
                     <Fuel className="h-5 w-5 text-amber-500 mb-2 opacity-80" />
                     <p className="text-2xl font-black text-foreground">
                       <AnimatedCounter value={analytics.impact_equivalents?.biofuel_liters || 0} decimals={1} suffix=" L" />
@@ -469,8 +465,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Recent Transactions */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="dashboard-card bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
                   <History className="h-5 w-5 text-primary" />
@@ -484,7 +479,7 @@ export default function DashboardPage() {
               </div>
               {transactions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center px-6">
-                  <Package className="h-12 w-12 text-slate-300 dark:text-slate-700 mb-3" />
+                  <Package className="h-12 w-12 text-foreground dark:text-foreground mb-3" />
                   <p className="font-semibold text-muted-foreground">Belum ada transaksi</p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Setorkan sampah ke pos drop-off terdekat untuk mulai mengumpulkan poin.

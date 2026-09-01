@@ -60,7 +60,7 @@ export function NotificationBell() {
       {/* Bell Trigger */}
       <button
         onClick={handleOpen}
-        className="relative p-2 text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full border border-slate-200/60 dark:border-slate-800/60 shadow-sm transition-all"
+        className="relative p-2 text-foreground dark:text-foreground hover:text-primary dark:hover:text-primary bg-card  hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full border border-slate-200/60 dark:border-slate-800/60 shadow-sm transition-all"
         aria-label="Pusat Notifikasi"
       >
         <Bell className="h-5 w-5" />
@@ -73,14 +73,14 @@ export function NotificationBell() {
 
       {/* Popover Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl z-50 overflow-hidden text-left animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm z-50 overflow-hidden text-left animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="p-4 bg-slate-50  border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
               <h3 className="font-heading font-bold text-sm text-foreground">Notifikasi Aktivitas</h3>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-foreground">
+            <button onClick={() => setIsOpen(false)} className="text-foreground hover:text-foreground">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -111,7 +111,7 @@ export function NotificationBell() {
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-xs text-foreground leading-snug">{item.title}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{item.message}</p>
-                    <span className="text-[10px] text-slate-400 mt-1 block">
+                    <span className="text-[10px] text-foreground mt-1 block">
                       {new Date(item.created_at).toLocaleDateString("id-ID", {
                         day: "numeric",
                         month: "short",
