@@ -19,6 +19,7 @@ enum Role {
 
 enum OrderStatus {
   PENDING
+  PAID
   COMPLETED
   CANCELLED
 }
@@ -55,6 +56,7 @@ model User {
   products_listed          Product[]
   orders_placed            Order[]              @relation("BuyerOrders")
   event_participations     EventParticipant[]
+  addresses                UserAddress[]
 }
 
 model Otp {
@@ -193,4 +195,28 @@ model EventParticipant {
   @@unique([event_id, citizen_id]) // Prevent duplicate RSVP
   @@index([event_id])
   @@index([citizen_id])
+}
+
+// ─────────────────────────────────────────────
+//  ADDRESS BOOK
+// ─────────────────────────────────────────────
+
+model UserAddress {
+  id           String   @id @default(uuid())
+  user_id      String
+  label        String   // e.g., "Rumah", "Kantor"
+  recipient    String
+  phone        String
+  full_address String
+  city_id      String?  // Untuk integrasi RajaOngkir
+  province_id  String?  // Untuk integrasi RajaOngkir
+  lat          Float
+  lng          Float
+  is_primary   Boolean  @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@index([user_id])
 }

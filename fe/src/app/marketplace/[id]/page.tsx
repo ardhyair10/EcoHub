@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, ShoppingBag, TreePine, Droplets, Minus, Plus, AlertCircle, CheckCircle2, Leaf } from "lucide-react";
 import { safeFetchJson } from "@/lib/api";
+import { useCart } from "@/context/CartContext";
 
 interface Product {
   id: string;
@@ -85,6 +86,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     fetchData();
   }, [id, API_URL]);
 
+  const { addToCart } = useCart();
+
   const handleCheckout = async () => {
     if (!product) return;
     
@@ -95,46 +98,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     }
 
     setIsOrdering(true);
-    setOrderStatus(null);
-
-    try {
-      const res = await fetch(`${API_URL}/api/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          product_id: product.id,
-          quantity,
-          points_used: pointsUsed
-        })
-      });
-      
-      const data = await safeFetchJson(res);
-      
-      if (data.success) {
-        setOrderStatus({ type: 'success', message: 'Pesanan berhasil dibuat!' });
-        setUserPoints(prev => Math.max(0, prev - pointsUsed));
-        const userStr = localStorage.getItem("user");
-        if (userStr) {
-          try {
-            const u = JSON.parse(userStr);
-            u.eco_points = Math.max(0, (u.eco_points || 0) - pointsUsed);
-            localStorage.setItem("user", JSON.stringify(u));
-          } catch {}
-        }
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 2000);
-      } else {
-        setOrderStatus({ type: 'error', message: data.message || 'Gagal membuat pesanan' });
-      }
-    } catch (err) {
-      setOrderStatus({ type: 'error', message: 'Terjadi kesalahan jaringan' });
-    } finally {
-      setIsOrdering(false);
-    }
+    
+    // Add item to cart with selected quantity and points
+    addToCart(product, quantity, pointsUsed);
+    
+    // Redirect to checkout page so user can choose shipping & courier
+    router.push("/checkout");
   };
 
   const formatIDR = (price: number) => {

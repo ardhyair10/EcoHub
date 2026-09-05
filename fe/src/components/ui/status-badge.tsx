@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface StatusBadgeProps {
-  status: "VALIDATED" | "PENDING" | "COMPLETED" | "CANCELLED" | "REGISTERED" | "ATTENDED";
+  status: "VALIDATED" | "PENDING" | "PAID" | "COMPLETED" | "CANCELLED" | "REGISTERED" | "ATTENDED";
   className?: string;
 }
 
@@ -13,6 +13,10 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   PENDING: {
     label: "Menunggu",
     className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+  },
+  PAID: {
+    label: "Dikemas",
+    className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   },
   COMPLETED: {
     label: "Selesai",

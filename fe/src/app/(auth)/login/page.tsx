@@ -48,7 +48,7 @@ export default function LoginPage() {
         } else if (data.data.user?.role === "B2B_BUYER") {
           router.push("/b2b");
         } else {
-          router.push("/welcome");
+          router.push("/");
         }
       } else {
         if (data.data?.require_otp) {

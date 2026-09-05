@@ -198,4 +198,101 @@ const getMyOrders = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, getMyOrders, createBulkOrder };
+// POST /api/orders/:id/pay — Simulasi pembayaran
+const payOrder = async (req, res) => {
+  try {
+    const buyerId = req.user.id;
+    const { id } = req.params;
+
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
+    }
+    if (order.buyer_id !== buyerId) {
+      return res.status(403).json({ success: false, message: 'Akses ditolak' });
+    }
+    if (order.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: 'Pesanan sudah dibayar atau dibatalkan' });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id },
+      data: { status: 'PAID' }
+    });
+
+    res.json({ success: true, message: 'Pembayaran berhasil!', data: updatedOrder });
+  } catch (error) {
+    console.error('Pay order error:', error);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server' });
+  }
+};
+
+// POST /api/orders/:id/cancel — Batalkan pesanan
+const cancelOrder = async (req, res) => {
+  try {
+    const buyerId = req.user.id;
+    const { id } = req.params;
+
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
+    }
+    if (order.buyer_id !== buyerId) {
+      return res.status(403).json({ success: false, message: 'Akses ditolak' });
+    }
+    if (order.status !== 'PENDING') {
+      return res.status(400).json({ success: false, message: 'Hanya pesanan menunggu bayar yang bisa dibatalkan' });
+    }
+
+    const [updatedOrder] = await prisma.$transaction([
+      prisma.order.update({
+        where: { id },
+        data: { status: 'CANCELLED' }
+      }),
+      prisma.product.update({
+        where: { id: order.product_id },
+        data: { stock: { increment: order.quantity } }
+      }),
+      prisma.user.update({
+        where: { id: buyerId },
+        data: { eco_points: { increment: order.points_used } }
+      })
+    ]);
+
+    res.json({ success: true, message: 'Pesanan berhasil dibatalkan, poin dikembalikan!', data: updatedOrder });
+  } catch (error) {
+    console.error('Cancel order error:', error);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server' });
+  }
+};
+
+// POST /api/orders/:id/complete — Selesaikan pesanan
+const completeOrder = async (req, res) => {
+  try {
+    const buyerId = req.user.id;
+    const { id } = req.params;
+
+    const order = await prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Pesanan tidak ditemukan' });
+    }
+    if (order.buyer_id !== buyerId) {
+      return res.status(403).json({ success: false, message: 'Akses ditolak' });
+    }
+    if (order.status !== 'PAID') {
+      return res.status(400).json({ success: false, message: 'Pesanan belum dibayar atau sudah selesai' });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id },
+      data: { status: 'COMPLETED' }
+    });
+
+    res.json({ success: true, message: 'Pesanan selesai!', data: updatedOrder });
+  } catch (error) {
+    console.error('Complete order error:', error);
+    res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server' });
+  }
+};
+
+module.exports = { createOrder, getMyOrders, createBulkOrder, payOrder, cancelOrder, completeOrder };

@@ -36,51 +36,8 @@ export function CartDrawer() {
   };
 
   const handleCheckout = async () => {
-    if (items.length === 0) return;
-    setLoading(true);
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setIsCartOpen(false);
-        router.push("/login");
-        return;
-      }
-
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-      
-      const payload = {
-        items: items.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          points_used: item.points_used
-        }))
-      };
-
-      const res = await fetch(`${API}/api/orders/bulk`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await safeFetchJson(res);
-      if (data.success) {
-        clearCart();
-        setIsCartOpen(false);
-        alert(data.message || "Pesanan berhasil dibuat!");
-        // Refresh router to update points in UI if needed
-        router.refresh();
-      } else {
-        alert(data.message || "Gagal checkout");
-      }
-    } catch (err) {
-      alert("Terjadi kesalahan koneksi saat checkout");
-    } finally {
-      setLoading(false);
-    }
+    setIsCartOpen(false);
+    router.push("/checkout");
   };
 
   return (
@@ -184,15 +141,11 @@ export function CartDrawer() {
             
             <SheetFooter>
               <Button 
-                onClick={handleCheckout} 
-                className="w-full h-12 text-base shadow-lg hover:shadow-sm transition-all"
-                disabled={loading}
+                className="w-full h-12 rounded-xl text-md font-bold shadow-lg"
+                disabled={items.length === 0 || loading}
+                onClick={handleCheckout}
               >
-                {loading ? "Memproses..." : (
-                  <>
-                    <Receipt className="w-5 h-5 mr-2" /> Checkout Sekarang
-                  </>
-                )}
+                Lanjut ke Pembayaran
               </Button>
             </SheetFooter>
           </div>

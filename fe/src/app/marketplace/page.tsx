@@ -93,11 +93,17 @@ export default function MarketplacePage() {
               <h1 className="text-xl font-heading font-bold text-foreground ">Eco Marketplace</h1>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="relative text-foreground dark:text-foreground hover:text-primary" onClick={() => setIsCartOpen(true)}>
-              <ShoppingCart className="h-5 w-5" />
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button variant="ghost" className="hidden sm:flex text-sm font-semibold rounded-full" onClick={() => router.push("/dashboard/history?tab=orders")}>
+              <Package className="h-5 w-5 mr-2" /> Pesanan Saya
+            </Button>
+            <Button variant="ghost" size="icon" className="sm:hidden rounded-full" onClick={() => router.push("/dashboard/history?tab=orders")}>
+              <Package className="h-5 w-5" />
+            </Button>
+            <Button variant="outline" size="icon" className="relative h-12 w-12 rounded-full border-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary hover:text-white transition-all shadow-sm" onClick={() => setIsCartOpen(true)}>
+              <ShoppingCart className="h-6 w-6" />
               {totalItems > 0 && (
-                <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[11px] font-bold text-white shadow-md border-2 border-white dark:border-slate-900">
                   {totalItems}
                 </span>
               )}
@@ -199,6 +205,13 @@ export default function MarketplacePage() {
                         </div>
                       )}
                     </div>
+                    
+                    {product.impact_desc && (
+                      <div className="mt-3 text-[11px] font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded-md border border-emerald-100 dark:border-emerald-900/50 flex items-start gap-1.5 leading-snug">
+                        <span>♻️</span>
+                        <span>{product.impact_desc}</span>
+                      </div>
+                    )}
                   </CardContent>
 
                   <CardFooter className="px-5 pb-5 pt-0 flex flex-col items-start gap-3 border-t border-slate-100 dark:border-slate-800/50 pt-4 mt-auto">

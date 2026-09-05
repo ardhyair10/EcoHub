@@ -23,6 +23,8 @@ const eventRoutes = require('./src/routes/eventRoutes');
 const chatRoutes = require('./src/routes/chatRoutes');
 const b2bRoutes = require('./src/routes/b2bRoutes');
 const analyticsRoutes = require('./src/routes/analyticsRoutes');
+const addressRoutes = require('./src/routes/addressRoutes');
+const shippingRoutes = require('./src/routes/shippingRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/waste-categories', wasteCategoryRoutes);
@@ -35,6 +37,8 @@ app.use('/api/events', eventRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/b2b', b2bRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/addresses', addressRoutes);
+app.use('/api/shipping', shippingRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Eco Hub API', version: '1.0.0' });

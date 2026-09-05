@@ -81,16 +81,10 @@ export default function DashboardPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    if (!loading) {
-      gsap.from(".dashboard-card", {
-        y: 30,
-        opacity: 0,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: "power2.out",
-      });
+    if (!loading && user) {
+      // Animations removed temporarily to prevent opacity 0 bug
     }
-  }, { scope: containerRef, dependencies: [loading] });
+  }, { scope: containerRef, dependencies: [loading, user] });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -184,56 +178,48 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950" ref={containerRef}>
-      <ImpactCertificate
-        userName={user.name}
-        totalPoints={user.eco_points}
-        totalTransactions={user._count?.transactions_as_citizen || 0}
-        totalWeightKg={monthlyStats?.monthly_weight_kg}
-        isOpen={showCert}
-        onClose={() => setShowCert(false)}
-      />
 
-      <header className="sticky top-0 z-50 px-6 lg:px-10 h-16 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-card ">
-        <div className="flex items-center gap-3">
-          <div className="p-1.5 bg-primary/10 rounded-lg">
-            <Leaf className="h-5 w-5 text-primary" />
+      <header className="sticky top-0 z-50 px-6 lg:px-10 h-20 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-card ">
+        <div className="flex items-center gap-4">
+          <div className="p-2 bg-primary/10 rounded-xl">
+            <Leaf className="h-7 w-7 text-primary" />
           </div>
-          <span className="text-xl font-heading font-extrabold tracking-tight">
+          <span className="text-2xl font-heading font-extrabold tracking-tight">
             Eco<span className="text-primary">Hub</span>
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <ThemeToggle />
           <NotificationBell />
           <Link href="/marketplace">
-            <Button variant="outline" size="sm" className="gap-2 font-semibold">
-              <Package className="h-4 w-4" />
+            <Button variant="outline" className="h-10 gap-2 font-bold px-5 text-sm">
+              <Package className="h-5 w-5" />
               <span className="hidden sm:inline">Marketplace</span>
             </Button>
           </Link>
           <Link href="/events">
-            <Button variant="outline" size="sm" className="gap-2 font-semibold">
-              <Users className="h-4 w-4" />
+            <Button variant="outline" className="h-10 gap-2 font-bold px-5 text-sm">
+              <Users className="h-5 w-5" />
               <span className="hidden sm:inline">Volunteer</span>
             </Button>
           </Link>
           {isAdmin && (
             <Link href="/admin">
-              <Button variant="outline" size="sm" className="gap-2 font-semibold">
-                <Recycle className="h-4 w-4" />
+              <Button variant="outline" className="h-10 gap-2 font-bold px-5 text-sm">
+                <Recycle className="h-5 w-5" />
                 <span className="hidden sm:inline">Admin Panel</span>
               </Button>
             </Link>
           )}
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-muted-foreground hover:text-foreground">
-            <LogOut className="h-4 w-4" />
+          <Button variant="ghost" onClick={handleLogout} className="h-10 gap-2 text-muted-foreground hover:text-foreground font-bold px-4 text-sm">
+            <LogOut className="h-5 w-5" />
             <span className="hidden sm:inline">Log Out</span>
           </Button>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8 md:py-12 max-w-[1400px]">
-        <div className="mb-8">
+        <div className="dashboard-header mb-8">
           <h1 className="text-3xl font-heading font-black text-foreground">
             Halo, {user.name.split(" ")[0]}
           </h1>
@@ -244,7 +230,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 flex flex-col gap-6">
-            <div className="dashboard-card bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 flex flex-col items-center text-center gap-4">
+            <div className="dashboard-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[32px] shadow-sm border border-white/20 dark:border-white/5 p-8 flex flex-col items-center text-center gap-4">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                 <Leaf className="h-6 w-6 text-primary" />
               </div>
@@ -264,7 +250,7 @@ export default function DashboardPage() {
             </div>
 
             {monthlyStats && (
-              <div className="dashboard-card bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center gap-4">
+              <div className="dashboard-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[32px] shadow-sm border border-white/20 dark:border-white/5 p-6 flex flex-col items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Target className="h-5 w-5 text-primary" />
                   <h3 className="font-heading font-bold text-foreground">Target Bulan Ini</h3>
@@ -300,7 +286,7 @@ export default function DashboardPage() {
 
           <div className="lg:col-span-2 flex flex-col gap-6">
             <div className="grid grid-cols-2 gap-4">
-              <div className="dashboard-card bg-primary text-primary-foreground border border-border rounded-lg p-5 shadow-sm">
+              <div className="dashboard-card bg-primary text-primary-foreground border-transparent rounded-[24px] p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <Award className="h-5 w-5 text-primary-foreground/80" />
                   <span className="text-sm font-semibold text-primary-foreground/80">Total Saldo Poin</span>
@@ -308,7 +294,7 @@ export default function DashboardPage() {
                 <p className="text-4xl font-black">{user.eco_points.toLocaleString()}</p>
                 <p className="text-sm text-primary-foreground/70 mt-1">Saldo poin aktif dapat ditukar</p>
               </div>
-              <div className="dashboard-card bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="dashboard-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[24px] p-6 border border-white/20 dark:border-white/5 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
                   <TrendingUp className="h-5 w-5 text-primary" />
                   <span className="text-sm font-semibold text-muted-foreground">Total Setoran</span>
@@ -321,26 +307,26 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Button onClick={() => setShowCert(true)} className="dashboard-card h-auto py-4 flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
+              <Button onClick={() => setShowCert(true)} className="dashboard-card h-auto py-5 flex flex-col gap-2 rounded-[20px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md text-foreground border border-white/20 dark:border-white/5 hover:bg-white/80 shadow-sm transition-transform hover:scale-[0.98]">
                 <FileText className="h-6 w-6 text-primary" />
                 <span className="font-semibold text-sm">Sertifikat Impact</span>
               </Button>
               <Link href="/events" className="w-full">
-                <Button className="dashboard-card w-full h-auto py-4 flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
+                <Button className="dashboard-card w-full h-auto py-5 flex flex-col gap-2 rounded-[20px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md text-foreground border border-white/20 dark:border-white/5 hover:bg-white/80 shadow-sm transition-transform hover:scale-[0.98]">
                   <Users className="h-6 w-6 text-emerald-500" />
                   <span className="font-semibold text-sm">Volunteer Hub</span>
                 </Button>
               </Link>
               {user.role === "ADMIN_RW" || user.role === "B2B_BUYER" ? (
                 <Link href="/b2b" className="w-full">
-                  <Button className="dashboard-card w-full h-auto py-4 flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
+                  <Button className="dashboard-card w-full h-auto py-5 flex flex-col gap-2 rounded-[20px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md text-foreground border border-white/20 dark:border-white/5 hover:bg-white/80 shadow-sm transition-transform hover:scale-[0.98]">
                     <Building2 className="h-6 w-6 text-secondary" />
                     <span className="font-semibold text-sm">B2B Bulk Waste</span>
                   </Button>
                 </Link>
               ) : (
                 <Link href="/dashboard/leaderboard" className="w-full">
-                  <Button className="dashboard-card w-full h-auto py-4 flex flex-col gap-2 rounded-lg bg-white dark:bg-slate-900 text-foreground border border-slate-200 dark:border-slate-800 hover:bg-slate-50 shadow-sm">
+                  <Button className="dashboard-card w-full h-auto py-5 flex flex-col gap-2 rounded-[20px] bg-white/60 dark:bg-slate-900/60 backdrop-blur-md text-foreground border border-white/20 dark:border-white/5 hover:bg-white/80 shadow-sm transition-transform hover:scale-[0.98]">
                     <Crown className="h-6 w-6 text-amber-500" />
                     <span className="font-semibold text-sm">Leaderboard RW</span>
                   </Button>
@@ -349,7 +335,7 @@ export default function DashboardPage() {
             </div>
 
             {badges.length > 0 && (
-              <div className="dashboard-card bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+              <div className="dashboard-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-accent" />
@@ -368,8 +354,8 @@ export default function DashboardPage() {
             )}
 
             {leaderboard.length > 0 && (
-              <div className="dashboard-card bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
+              <div className="dashboard-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
                   <div className="flex items-center gap-2">
                     <Crown className="h-5 w-5 text-accent" />
                     <h3 className="font-heading font-bold text-foreground">Leaderboard Bulan Ini</h3>

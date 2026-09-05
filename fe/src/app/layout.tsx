@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ChatWidget } from "@/components/chat-widget";
 import { CartProvider } from "@/context/CartContext";
 import { CartDrawer } from "@/components/cart-drawer";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
 const outfit = Outfit({
-  variable: "--font-outfit",
+  variable: "--font-outfit", // Use it as primary sans
   subsets: ["latin"],
 });
 
@@ -29,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${outfit.variable} font-sans antialiased min-h-screen flex flex-col relative`}
+        className={`${outfit.variable} font-sans antialiased min-h-[100dvh] flex flex-col relative`}
       >
         <ThemeProvider
           attribute="class"

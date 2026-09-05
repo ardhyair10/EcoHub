@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -65,15 +65,9 @@ export default function AdminPage() {
   const [analytics, setAnalytics] = useState<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    gsap.from(".admin-card", {
-      y: 20,
-      opacity: 0,
-      duration: 0.5,
-      stagger: 0.05,
-      ease: "power2.out",
-    });
-  }, { scope: containerRef, dependencies: [activeTab, analytics, wargaList, transactions, b2bRequests] });
+  const [b2bApproving, setB2bApproving] = useState<string | null>(null);
+
+
 
   // --- Tab 1: Input Sampah State ---
   const [inputSearchQuery, setInputSearchQuery] = useState("");
@@ -107,7 +101,27 @@ export default function AdminPage() {
 
   // --- Tab 4: Pesanan B2B State ---
   const [b2bRequests, setB2bRequests] = useState<any[]>([]);
-  const [b2bApproving, setB2bApproving] = useState<string | null>(null);
+
+  useGSAP(() => {
+    const tl = gsap.timeline();
+    
+    // Header fast fade
+    tl.from(".admin-header", {
+      opacity: 0,
+      y: -10,
+      duration: 0.3,
+      ease: "power1.out",
+    }, 0);
+
+    // Cards/Table slide in quickly from left
+    tl.from(".admin-card", {
+      x: -30,
+      opacity: 0,
+      duration: 0.4,
+      stagger: 0.05,
+      ease: "power2.out",
+    }, 0.1);
+  }, { scope: containerRef, dependencies: [activeTab, analytics, wargaList, transactions, b2bRequests] });
 
   const fetchB2bRequests = useCallback(async () => {
     const t = localStorage.getItem("token");
@@ -366,7 +380,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950" ref={containerRef}>
       {/* Navbar */}
-      <header className="sticky top-0 z-40 px-6 h-16 flex items-center gap-4 border-b border-slate-200 dark:border-slate-800  bg-card ">
+      <header className="admin-header sticky top-0 z-50 px-6 lg:px-10 h-16 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-card">
         <Link href="/dashboard">
           <Button variant="ghost" size="icon" className="rounded-full">
             <ArrowLeft className="h-5 w-5" />
@@ -402,7 +416,7 @@ export default function AdminPage() {
 
       <main className="container mx-auto px-4 py-8 max-w-[1400px]">
         {/* CSS-only Tab Navigation */}
-        <div className="flex bg-slate-200/50  rounded-lg p-1 mb-6 border border-slate-200 dark:border-slate-800 overflow-x-auto">
+        <div className="admin-header flex bg-slate-200/50 rounded-lg p-1 mb-6 border border-slate-200 dark:border-slate-800 overflow-x-auto">
           <button
             onClick={() => setActiveTab("overview")}
             className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
@@ -469,25 +483,25 @@ export default function AdminPage() {
         {activeTab === "overview" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+              <div className="admin-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm flex flex-col justify-center">
                 <h3 className="text-muted-foreground text-sm font-medium">Total Daur Ulang</h3>
                 <p className="text-4xl font-black mt-2 text-foreground">
                   {analytics?.total_weight_kg || 0} <span className="text-lg text-emerald-500">kg</span>
                 </p>
               </div>
-              <div className="admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+              <div className="admin-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm flex flex-col justify-center">
                 <h3 className="text-muted-foreground text-sm font-medium">Total Warga Terdaftar</h3>
                 <p className="text-4xl font-black mt-2 text-foreground">
                   {analytics?.total_citizens || 0}
                 </p>
               </div>
-              <div className="admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+              <div className="admin-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm flex flex-col justify-center">
                 <h3 className="text-muted-foreground text-sm font-medium">Total Poin Didistribusikan</h3>
                 <p className="text-4xl font-black mt-2 text-foreground">
                   {analytics?.total_points_awarded || 0}
                 </p>
               </div>
-              <div className="admin-card bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-center">
+              <div className="admin-card bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl p-6 rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm flex flex-col justify-center">
                 <h3 className="text-muted-foreground text-sm font-medium">Total Transaksi</h3>
                 <p className="text-4xl font-black mt-2 text-foreground">
                   {analytics?.total_transactions || 0}
@@ -1176,7 +1190,7 @@ export default function AdminPage() {
         {/* TAB 5 CONTENT: KELOLA PRODUK */}
         {/* ========================================== */}
         {activeTab === "produk" && (
-          <ProductTab token={token} />
+          <ProductTab token={token || ""} />
         )}
       </main>
     </div>
