@@ -1,0 +1,1217 @@
+"use client";
+
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  Leaf,
+  Search,
+  Check,
+  ArrowLeft,
+  Recycle,
+  User,
+  Award,
+  Scale,
+  X,
+  Loader2,
+  History,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  LogOut,
+  Building2,
+  QrCode,
+  Camera,
+  Package,
+  Activity,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import StatusBadge from "@/components/ui/status-badge";
+import { NotificationBell } from "@/components/notification-bell";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { safeFetchJson } from "@/lib/api";
+import { Scanner } from '@yudiel/react-qr-scanner';
+import ProductTab from "./product-tab";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+interface CitizenUser {
+  id: string;
+  name: string;
+  email: string;
+  eco_points: number;
+  qr_code_id: string;
+  _count?: { transactions_as_citizen: number };
+  last_transaction?: string;
+  transactions_as_citizen?: any[]; // For slide-out detail
+}
+
+interface WasteCategory {
+  id: string;
+  name: string;
+  point_per_kg: number;
+  description?: string;
+}
+
+export default function AdminPage() {
+  const router = useRouter();
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "input" | "warga" | "riwayat" | "b2b" | "produk">("overview");
+  const [analytics, setAnalytics] = useState<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [b2bApproving, setB2bApproving] = useState<string | null>(null);
+
+
+
+  // --- Tab 1: Input Sampah State ---
+  const [inputSearchQuery, setInputSearchQuery] = useState("");
+  const [inputSearchResults, setInputSearchResults] = useState<CitizenUser[]>([]);
+  const [inputSearching, setInputSearching] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanError, setScanError] = useState("");
+  const [selectedUser, setSelectedUser] = useState<CitizenUser | null>(null);
+
+  const [categories, setCategories] = useState<WasteCategory[]>([]);
+  const [categoryId, setCategoryId] = useState("");
+  const [weightKg, setWeightKg] = useState("");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  // --- Tab 2: Daftar Warga State ---
+  const [wargaList, setWargaList] = useState<CitizenUser[]>([]);
+  const [wargaSearch, setWargaSearch] = useState("");
+  const [wargaPage, setWargaPage] = useState(1);
+  const [wargaTotalPages, setWargaTotalPages] = useState(1);
+  const [wargaLoading, setWargaLoading] = useState(false);
+  const [selectedCitizenDetail, setSelectedCitizenDetail] = useState<CitizenUser | null>(null);
+
+  // --- Tab 3: Riwayat Transaksi State ---
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [txPage, setTxPage] = useState(1);
+  const [txTotalPages, setTxTotalPages] = useState(1);
+  const [txLoading, setTxLoading] = useState(false);
+  const [txValidating, setTxValidating] = useState<string | null>(null);
+
+  // --- Tab 4: Pesanan B2B State ---
+  const [b2bRequests, setB2bRequests] = useState<any[]>([]);
+
+  // Clean CSS transitions used for tab animations instead of GSAP from() to prevent opacity freeze bugs
+
+  const fetchB2bRequests = useCallback(async () => {
+    const t = localStorage.getItem("token");
+    if (!t) return;
+    try {
+      const res = await fetch(`${API_URL}/api/b2b/requests`, {
+        headers: { Authorization: `Bearer ${t}` },
+      });
+      const d = await safeFetchJson(res);
+      if (d.success) setB2bRequests(d.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const handleApproveB2b = async (id: string) => {
+    const t = localStorage.getItem("token");
+    if (!t) return;
+    try {
+      setB2bApproving(id);
+      const res = await fetch(`${API_URL}/api/b2b/requests/${id}/approve`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${t}` },
+      });
+      const d = await safeFetchJson(res);
+      if (d.success) {
+        setB2bRequests((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status: "APPROVED" } : r))
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setB2bApproving(null);
+    }
+  };
+
+  // Initial Auth & Load Categories
+  useEffect(() => {
+    const t = localStorage.getItem("token");
+    const userStr = localStorage.getItem("user");
+    if (!t) {
+      router.push("/login");
+      return;
+    }
+
+    const user = userStr ? JSON.parse(userStr) : null;
+    if (!user || (user.role !== "ADMIN_RW" && user.role !== "SUPER_ADMIN")) {
+      router.push("/dashboard");
+      return;
+    }
+    setUser(user);
+    setToken(t);
+
+    fetch(`${API_URL}/api/waste-categories`)
+      .then(safeFetchJson)
+      .then((d) => {
+        if (d.success) setCategories(d.data);
+      })
+      .catch(console.error);
+  }, [router]);
+
+  // ==========================================
+  // TAB 1: INPUT SAMPAH LOGIC
+  // ==========================================
+  const handleInputSearch = async () => {
+    if (!inputSearchQuery.trim() || inputSearchQuery.trim().length < 2) return;
+    setInputSearching(true);
+    setInputSearchResults([]);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/users/search?q=${encodeURIComponent(inputSearchQuery)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await safeFetchJson(res);
+      if (data.success) setInputSearchResults(data.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setInputSearching(false);
+    }
+  };
+
+  const handleScan = async (result: any) => {
+    if (!result || !result[0]) return;
+    const qrCodeId = result[0].rawValue;
+    setShowScanner(false);
+    setScanError("");
+    setInputSearching(true);
+    try {
+      const res = await fetch(`${API_URL}/api/users/by-qr/${qrCodeId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await safeFetchJson(res);
+      if (data.success) {
+        setSelectedUser(data.data);
+        setInputSearchQuery(data.data.name);
+      } else {
+        setScanError("QR Code tidak dikenali atau tidak valid.");
+      }
+    } catch (err) {
+      setScanError("Terjadi kesalahan saat memindai.");
+    } finally {
+      setInputSearching(false);
+    }
+  };
+
+  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const previewPoints =
+    selectedCategory && parseFloat(weightKg) > 0
+      ? Math.round(parseFloat(weightKg) * selectedCategory.point_per_kg)
+      : null;
+
+  const handleInputSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedUser || !categoryId || !weightKg) return;
+
+    setSubmitting(true);
+    setResult(null);
+
+    try {
+      const res = await fetch(`${API_URL}/api/transactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          citizen_id: selectedUser.id,
+          waste_category_id: categoryId,
+          weight_kg: parseFloat(weightKg),
+          notes: notes || undefined,
+        }),
+      });
+
+      const data = await safeFetchJson(res);
+      setResult({ success: data.success, message: data.message || "" });
+
+      if (data.success) {
+        setSelectedUser((u) =>
+          u ? { ...u, eco_points: u.eco_points + (previewPoints ?? 0) } : u
+        );
+        setCategoryId("");
+        setWeightKg("");
+        setNotes("");
+        // Clear recent transactions to enforce refetch
+        setTransactions([]);
+      }
+    } catch (err) {
+      setResult({ success: false, message: "Terjadi kesalahan koneksi" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // ==========================================
+  // TAB 2: DAFTAR WARGA LOGIC
+  // ==========================================
+  const fetchWarga = useCallback(async (page = 1, search = wargaSearch) => {
+    if (!token) return;
+    setWargaLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/users/citizens?page=${page}&q=${encodeURIComponent(search)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const d = await safeFetchJson(res);
+      if (d.success) {
+        setWargaList(d.data.citizens);
+        setWargaTotalPages(d.data.pagination.totalPages);
+        setWargaPage(page);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setWargaLoading(false);
+    }
+  }, [token, wargaSearch]);
+
+  const openCitizenDetail = async (id: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/users/citizens/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = await safeFetchJson(res);
+      if (d.success) setSelectedCitizenDetail(d.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ==========================================
+  // TAB 3: RIWAYAT TRANSAKSI LOGIC
+  // ==========================================
+  const fetchTransactions = useCallback(async (page = 1) => {
+    if (!token) return;
+    setTxLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/transactions?page=${page}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = await safeFetchJson(res);
+      if (d.success) {
+        setTransactions(d.data.transactions);
+        setTxTotalPages(d.data.pagination.totalPages);
+        setTxPage(page);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTxLoading(false);
+    }
+  }, [token]);
+
+  const validateTransaction = async (id: string) => {
+    if (!token) return;
+    setTxValidating(id);
+    try {
+      const res = await fetch(`${API_URL}/api/transactions/${id}/validate`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = await safeFetchJson(res);
+      if (d.success) {
+        setTransactions((txs) =>
+          txs.map((tx) => (tx.id === id ? { ...tx, status: "VALIDATED" } : tx))
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTxValidating(null);
+    }
+  };
+
+  const fetchAnalytics = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/analytics/community`);
+      const d = await safeFetchJson(res);
+      if (d.success) setAnalytics(d.data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [token]);
+
+  // Handle lazy loading tabs
+  useEffect(() => {
+    if (activeTab === "overview" && !analytics) fetchAnalytics();
+    if (activeTab === "warga") fetchWarga(1);
+    if (activeTab === "riwayat") fetchTransactions(1);
+    if (activeTab === "b2b") fetchB2bRequests();
+  }, [activeTab, fetchWarga, fetchTransactions, fetchB2bRequests, fetchAnalytics, analytics]);
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950" ref={containerRef}>
+      {/* Navbar */}
+      <header className="admin-header sticky top-0 z-50 px-6 lg:px-10 h-16 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-card">
+        <Link href="/dashboard">
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="flex items-center gap-2">
+          <Leaf className="h-5 w-5 text-primary" />
+          <span className="font-heading font-bold text-lg">
+            {user?.role === "SUPER_ADMIN" ? "Super Admin Pusat" : "Admin Panel RW 05"}
+          </span>
+        </div>
+        <div className="ml-auto flex items-center gap-3">
+          <ThemeToggle />
+          <NotificationBell />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+              router.push("/login");
+            }}
+            className="gap-1.5 text-muted-foreground hover:text-red-500 font-semibold"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Log Out</span>
+          </Button>
+          <span className="text-xs font-bold uppercase text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
+            {user?.role === "SUPER_ADMIN" ? "SUPER ADMIN" : "Admin RW"}
+          </span>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8 max-w-[1400px]">
+        {/* Tab Navigation */}
+        <div className="admin-header flex bg-muted/80 backdrop-blur-md rounded-2xl p-1.5 mb-8 border border-border shadow-inner overflow-x-auto gap-1">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              activeTab === "overview"
+                ? "bg-card text-primary shadow-sm border border-border"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+            }`}
+          >
+            <Activity className="h-4 w-4" /> Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("input")}
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              activeTab === "input"
+                ? "bg-card text-primary shadow-sm border border-border"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+            }`}
+          >
+            <Recycle className="h-4 w-4" /> Input Sampah
+          </button>
+          <button
+            onClick={() => setActiveTab("warga")}
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              activeTab === "warga"
+                ? "bg-card text-primary shadow-sm border border-border"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+            }`}
+          >
+            <User className="h-4 w-4" /> Daftar Warga
+          </button>
+          <button
+            onClick={() => setActiveTab("riwayat")}
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              activeTab === "riwayat"
+                ? "bg-card text-primary shadow-sm border border-border"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+            }`}
+          >
+            <History className="h-4 w-4" /> Riwayat Transaksi
+          </button>
+          <button
+            onClick={() => setActiveTab("b2b")}
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              activeTab === "b2b"
+                ? "bg-card text-primary shadow-sm border border-border"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+            }`}
+          >
+            <Building2 className="h-4 w-4" /> Pesanan B2B
+          </button>
+          <button
+            onClick={() => setActiveTab("produk")}
+            className={`flex-none md:flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all duration-200 ${
+              activeTab === "produk"
+                ? "bg-card text-primary shadow-sm border border-border"
+                : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+            }`}
+          >
+            <Package className="h-4 w-4" /> Produk
+          </button>
+        </div>
+
+        {/* ========================================== */}
+        {/* TAB 0: OVERVIEW / DASHBOARD ANALYTICS */}
+        {/* ========================================== */}
+        {activeTab === "overview" && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            {/* Community Overview Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="admin-card bg-card text-card-foreground p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-center">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Terkumpul</span>
+                  <div className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                    <Recycle className="h-5 w-5" />
+                  </div>
+                </div>
+                <h3 className="text-3xl font-heading font-black mt-3 text-foreground">
+                  {analytics?.total_weight_kg ? analytics.total_weight_kg.toLocaleString() : 0} <span className="text-base font-normal text-muted-foreground">kg</span>
+                </h3>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-2 flex items-center gap-1">
+                  <span>+</span> Dari {analytics?.total_transactions || 0} setoran sampah
+                </p>
+              </div>
+
+              <div className="admin-card bg-card text-card-foreground p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-center">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Eco-Points Terbagi</span>
+                  <div className="p-2.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl">
+                    <Award className="h-5 w-5" />
+                  </div>
+                </div>
+                <h3 className="text-3xl font-heading font-black mt-3 text-foreground">
+                  {analytics?.total_points ? analytics.total_points.toLocaleString() : 0} <span className="text-base font-normal text-muted-foreground">pts</span>
+                </h3>
+                <p className="text-xs text-muted-foreground font-medium mt-2">
+                  Reward terdistribusi ke warga
+                </p>
+              </div>
+
+              <div className="admin-card bg-card text-card-foreground p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-center">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Warga Berpartisipasi</span>
+                  <div className="p-2.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl">
+                    <User className="h-5 w-5" />
+                  </div>
+                </div>
+                <h3 className="text-3xl font-heading font-black mt-3 text-foreground">
+                  {analytics?.total_citizens || 0} <span className="text-base font-normal text-muted-foreground">orang</span>
+                </h3>
+                <p className="text-xs text-muted-foreground font-medium mt-2">
+                  Aktif mendaur ulang di RW 05
+                </p>
+              </div>
+
+              <div className="admin-card bg-card text-card-foreground p-6 rounded-2xl border border-border shadow-sm flex flex-col justify-center">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Estimasi CO₂ Dihemat</span>
+                  <div className="p-2.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-xl">
+                    <Leaf className="h-5 w-5" />
+                  </div>
+                </div>
+                <h3 className="text-3xl font-heading font-black mt-3 text-foreground">
+                  {analytics?.total_weight_kg ? (analytics.total_weight_kg * 1.2).toFixed(1) : 0} <span className="text-base font-normal text-muted-foreground">kg</span>
+                </h3>
+                <p className="text-xs text-teal-600 dark:text-teal-400 font-semibold mt-2">
+                  Dampak lingkungan positif
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="admin-card lg:col-span-1 space-y-6">
+                
+                <div className="bg-card text-card-foreground rounded-2xl p-6 border border-border shadow-sm">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <Leaf className="h-5 w-5 text-emerald-500" /> Dampak Lingkungan
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                    <p className="text-xs text-muted-foreground font-semibold mb-1">Reduksi Karbon</p>
+                    <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">-{analytics?.impact_equivalents?.carbon_saved_kg || 0} kg</p>
+                  </div>
+                  <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                    <p className="text-xs text-muted-foreground font-semibold mb-1">Plastik Dihindari</p>
+                    <p className="text-xl font-black text-blue-600 dark:text-blue-400">-{analytics?.impact_equivalents?.plastic_saved_kg || 0} kg</p>
+                  </div>
+                  <div className="p-4 bg-amber-500/10 rounded-xl border border-amber-500/20">
+                    <p className="text-xs text-muted-foreground font-semibold mb-1">Pohon Diselamatkan</p>
+                    <p className="text-xl font-black text-amber-600 dark:text-amber-400">{analytics?.impact_equivalents?.trees_saved || 0} Pohon</p>
+                  </div>
+                  <div className="p-4 bg-purple-500/10 rounded-xl border border-purple-500/20">
+                    <p className="text-xs text-muted-foreground font-semibold mb-1">Potensi Biofuel</p>
+                    <p className="text-xl font-black text-purple-600 dark:text-purple-400">{analytics?.impact_equivalents?.biofuel_liters || 0} L</p>
+                  </div>
+                </div>
+              </div>
+              </div>
+              
+              <div className="lg:col-span-2 admin-card bg-card text-card-foreground p-6 rounded-2xl border border-border shadow-sm">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <Recycle className="h-5 w-5 text-primary" /> Distribusi Kategori
+                </h3>
+                <div className="space-y-4">
+                  {analytics?.category_breakdown?.map((cat: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
+                      <div className="flex items-center gap-3">
+                        <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                        <span className="font-semibold text-sm text-foreground">{cat.category_name}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="text-muted-foreground">{cat.transaction_count} setoran</span>
+                        <span className="font-bold w-16 text-right text-foreground">{cat.weight_kg} kg</span>
+                      </div>
+                    </div>
+                  ))}
+                  {(!analytics?.category_breakdown || analytics.category_breakdown.length === 0) && (
+                    <p className="text-muted-foreground text-sm py-4 text-center">Belum ada data kategori sampah.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================== */}
+        {/* TAB 1 CONTENT: INPUT SAMPAH */}
+        {/* ========================================== */}
+        {activeTab === "input" && (
+          <div className="admin-card max-w-2xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {/* Step 1: Cari User */}
+            <div className="bg-card text-card-foreground rounded-2xl border border-border shadow-sm p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-black">
+                  1
+                </div>
+                <h2 className="font-heading font-bold text-foreground">Cari Warga</h2>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Masukkan nama, email, atau QR ID warga yang ingin menyetorkan sampah.
+              </p>
+
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Cari nama / email / QR ID..."
+                  value={inputSearchQuery}
+                  onChange={(e) => setInputSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleInputSearch()}
+                  className="flex-1"
+                />
+                <Button onClick={handleInputSearch} disabled={inputSearching} className="gap-2 font-bold">
+                  {inputSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  Cari
+                </Button>
+                <Button onClick={() => setShowScanner(true)} variant="outline" className="gap-2 text-primary border-primary hover:bg-primary/10 font-bold">
+                  <Camera className="h-4 w-4" />
+                  Scan
+                </Button>
+              </div>
+
+              {scanError && (
+                <p className="text-sm text-red-500 font-medium mt-2">{scanError}</p>
+              )}
+
+              {showScanner && (
+                <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+                  <div className="bg-card text-card-foreground w-full max-w-md rounded-2xl overflow-hidden shadow-2xl relative border border-border animate-in zoom-in-95 duration-200">
+                    <div className="p-4 bg-muted border-b border-border flex justify-between items-center rounded-t-2xl">
+                      <h3 className="font-bold text-foreground flex items-center gap-2"><QrCode className="h-4 w-4 text-primary" /> Scan QR Warga</h3>
+                      <button onClick={() => setShowScanner(false)} className="text-muted-foreground hover:text-foreground">
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                    <div className="p-0 bg-black aspect-square">
+                      <Scanner onScan={handleScan} />
+                    </div>
+                    <div className="p-4 text-center bg-card rounded-b-2xl">
+                      <p className="text-sm text-muted-foreground">Arahkan kamera ke QR Code warga.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Search Results */}
+              {inputSearchResults.length > 0 && !selectedUser && (
+                <div className="mt-3 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
+                  {inputSearchResults.map((u) => (
+                    <button
+                      key={u.id}
+                      onClick={() => {
+                        setSelectedUser(u);
+                        setInputSearchResults([]);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left border-b border-slate-100 dark:border-slate-800 last:border-b-0"
+                    >
+                      <div className="w-9 h-9 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-foreground">{u.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{u.email}</p>
+                      </div>
+                      <span className="text-xs font-bold text-primary">{u.eco_points} pts</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Selected User */}
+              {selectedUser && (
+                <div className="mt-3 bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-foreground">{selectedUser.name}</p>
+                    <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">Saat ini</p>
+                    <p className="font-bold text-primary">{selectedUser.eco_points} pts</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedUser(null)}
+                    className="ml-2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Step 2: Form Transaksi */}
+            <div
+              className={`bg-card text-card-foreground rounded-2xl border border-border shadow-sm p-6 transition-opacity ${
+                !selectedUser ? "opacity-50 pointer-events-none" : ""
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-black">
+                  2
+                </div>
+                <h2 className="font-heading font-bold text-foreground">Detail Sampah</h2>
+              </div>
+
+              <form onSubmit={handleInputSubmit} className="space-y-4">
+                {/* Category */}
+                <div className="space-y-2">
+                  <Label className="font-semibold flex items-center gap-2">
+                    <Recycle className="h-4 w-4 text-primary" />
+                    Kategori Sampah
+                  </Label>
+                  <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    required
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 text-foreground"
+                  >
+                    <option value="">-- Pilih kategori --</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.point_per_kg} pts/kg)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Weight */}
+                <div className="space-y-2">
+                  <Label className="font-semibold flex items-center gap-2">
+                    <Scale className="h-4 w-4 text-primary" />
+                    Berat (kg)
+                  </Label>
+                  <Input
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    placeholder="Contoh: 2.5"
+                    value={weightKg}
+                    onChange={(e) => setWeightKg(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-2">
+                  <Label className="font-semibold text-muted-foreground">Catatan (opsional)</Label>
+                  <Input
+                    placeholder="Misal: kondisi sampah bersih / kering"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
+                </div>
+
+                {/* Preview Poin */}
+                {previewPoints !== null && (
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Award className="h-5 w-5 text-primary" />
+                      <span className="text-sm font-semibold text-foreground">Poin diberikan:</span>
+                    </div>
+                    <span className="text-2xl font-black text-primary">+{previewPoints}</span>
+                  </div>
+                )}
+
+                {/* Result message */}
+                {result && (
+                  <div
+                    className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${
+                      result.success
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "bg-destructive/10 text-destructive border border-destructive/20"
+                    }`}
+                  >
+                    {result.success ? (
+                      <Check className="h-4 w-4 flex-shrink-0" />
+                    ) : (
+                      <X className="h-4 w-4 flex-shrink-0" />
+                    )}
+                    {result.message}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base font-bold gap-2"
+                  disabled={submitting || !selectedUser}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Menyimpan...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="h-4 w-4" /> Catat Transaksi
+                    </>
+                  )}
+                </Button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================== */}
+        {/* TAB 2 CONTENT: DAFTAR WARGA */}
+        {/* ========================================== */}
+        {activeTab === "warga" && (
+          <div className="admin-card space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Cari nama atau email warga..."
+                value={wargaSearch}
+                onChange={(e) => setWargaSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && fetchWarga(1)}
+                className="max-w-sm"
+              />
+              <Button onClick={() => fetchWarga(1)} disabled={wargaLoading} variant="secondary" className="font-bold">
+                <Search className="h-4 w-4 mr-2" /> Cari
+              </Button>
+            </div>
+
+            {wargaLoading ? (
+              <div className="flex justify-center p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <div className="bg-card text-card-foreground rounded-2xl border border-border overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted/70 text-muted-foreground text-xs uppercase font-bold tracking-wider border-b border-border">
+                        <tr>
+                          <th className="px-6 py-4">Warga</th>
+                          <th className="px-6 py-4 text-center">Total Transaksi</th>
+                          <th className="px-6 py-4">Terakhir Aktif</th>
+                          <th className="px-6 py-4 text-right">Eco Points</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {wargaList.map((w) => (
+                          <tr
+                            key={w.id}
+                            onClick={() => openCitizenDetail(w.id)}
+                            className="hover:bg-muted/50 cursor-pointer transition-colors"
+                          >
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex flex-shrink-0 items-center justify-center font-bold">
+                                  {w.name.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                  <p className="font-semibold text-foreground">{w.name}</p>
+                                  <p className="text-xs text-muted-foreground">{w.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-center text-muted-foreground font-medium">
+                              {w._count?.transactions_as_citizen || 0}
+                            </td>
+                            <td className="px-6 py-4 text-muted-foreground">
+                              {w.last_transaction
+                                ? new Date(w.last_transaction).toLocaleDateString("id-ID", {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  })
+                                : "-"}
+                            </td>
+                            <td className="px-6 py-4 font-bold text-primary text-right">
+                              {w.eco_points}
+                            </td>
+                          </tr>
+                        ))}
+                        {wargaList.length === 0 && (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
+                              Tidak ada warga ditemukan.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {wargaTotalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fetchWarga(wargaPage - 1)}
+                      disabled={wargaPage === 1}
+                      className="rounded-full"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground font-medium">
+                      Halaman {wargaPage} dari {wargaTotalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fetchWarga(wargaPage + 1)}
+                      disabled={wargaPage === wargaTotalPages}
+                      className="rounded-full"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Slide-out Warga Detail */}
+            {selectedCitizenDetail && (
+              <>
+                <div className="fixed inset-y-0 right-0 z-50 w-full md:w-[420px] bg-card text-card-foreground shadow-2xl border-l border-border overflow-y-auto transform transition-transform duration-300 translate-x-0">
+                  <div className="sticky top-0 bg-card p-6 border-b border-border flex items-center justify-between z-10">
+                    <h3 className="font-heading font-bold text-lg">Detail Warga</h3>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSelectedCitizenDetail(null)}
+                      className="rounded-full hover:bg-muted"
+                    >
+                      <X className="h-5 w-5" />
+                    </Button>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-2xl">
+                        {selectedCitizenDetail.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-xl text-foreground">
+                          {selectedCitizenDetail.name}
+                        </h4>
+                        <p className="text-muted-foreground text-sm">
+                          {selectedCitizenDetail.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                      <div className="bg-muted/50 p-4 rounded-xl border border-border text-center">
+                        <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-bold">
+                          Total Poin
+                        </p>
+                        <p className="font-black text-2xl text-primary">
+                          {selectedCitizenDetail.eco_points}
+                        </p>
+                      </div>
+                      <div className="bg-muted/50 p-4 rounded-xl border border-border text-center">
+                        <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider font-bold">
+                          Transaksi
+                        </p>
+                        <p className="font-black text-2xl text-foreground">
+                          {selectedCitizenDetail._count?.transactions_as_citizen || 0}
+                        </p>
+                      </div>
+                    </div>
+
+                    <h5 className="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
+                      <History className="h-4 w-4" /> 10 Transaksi Terakhir
+                    </h5>
+
+                    <div className="space-y-3">
+                      {!selectedCitizenDetail.transactions_as_citizen ||
+                      selectedCitizenDetail.transactions_as_citizen.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6 bg-muted/30 rounded-xl border border-border border-dashed">
+                          Belum ada transaksi.
+                        </p>
+                      ) : (
+                        selectedCitizenDetail.transactions_as_citizen.map((tx: any) => (
+                          <div
+                            key={tx.id}
+                            className="bg-muted/50 p-4 rounded-xl border border-border"
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-semibold text-sm text-foreground">
+                                {tx.waste_category.name}
+                              </span>
+                              <StatusBadge status={tx.status} />
+                            </div>
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Scale className="h-3.5 w-3.5" /> {tx.weight_kg} kg
+                              </span>
+                              <span className="font-bold text-primary">
+                                +{tx.points_awarded} pts
+                              </span>
+                            </div>
+                            <div className="mt-2.5 pt-2.5 border-t border-border text-[11px] text-muted-foreground flex items-center gap-1.5">
+                              <Calendar className="h-3 w-3" />{" "}
+                              {new Date(tx.created_at).toLocaleDateString("id-ID", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Backdrop */}
+                <div
+                  className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity"
+                  onClick={() => setSelectedCitizenDetail(null)}
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ========================================== */}
+        {/* TAB 3 CONTENT: RIWAYAT TRANSAKSI */}
+        {/* ========================================== */}
+        {activeTab === "riwayat" && (
+          <div className="admin-card space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {txLoading ? (
+              <div className="flex justify-center p-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <div className="bg-card text-card-foreground rounded-2xl border border-border overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted/70 text-muted-foreground text-xs uppercase font-bold tracking-wider border-b border-border">
+                        <tr>
+                          <th className="px-6 py-4">Warga & Status</th>
+                          <th className="px-6 py-4">Kategori & Berat</th>
+                          <th className="px-6 py-4">Poin</th>
+                          <th className="px-6 py-4">Tanggal</th>
+                          <th className="px-6 py-4 text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {transactions.map((tx) => (
+                          <tr
+                            key={tx.id}
+                            className="hover:bg-muted/50 transition-colors"
+                          >
+                            <td className="px-6 py-4">
+                              <div className="font-semibold text-foreground mb-1">
+                                {tx.citizen.name}
+                              </div>
+                              <StatusBadge status={tx.status} />
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="font-medium text-foreground">
+                                {tx.waste_category.name}
+                              </div>
+                              <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <Scale className="h-3 w-3" /> {tx.weight_kg} kg
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 font-bold text-primary">
+                              +{tx.points_awarded} pts
+                            </td>
+                            <td className="px-6 py-4 text-muted-foreground text-xs whitespace-nowrap">
+                              {new Date(tx.created_at).toLocaleString("id-ID", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              {tx.status === "PENDING" ? (
+                                <Button
+                                  size="sm"
+                                  onClick={() => validateTransaction(tx.id)}
+                                  disabled={txValidating === tx.id}
+                                  className="rounded-full shadow-sm font-bold"
+                                >
+                                  {txValidating === tx.id ? (
+                                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                  ) : (
+                                    <Check className="h-4 w-4 mr-1" />
+                                  )}
+                                  Validasi
+                                </Button>
+                              ) : (
+                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20 inline-flex items-center gap-1">
+                                  <Check className="h-3.5 w-3.5" /> Selesai
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                        {transactions.length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                              Tidak ada riwayat transaksi.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {txTotalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fetchTransactions(txPage - 1)}
+                      disabled={txPage === 1}
+                      className="rounded-full"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground font-medium">
+                      Halaman {txPage} dari {txTotalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => fetchTransactions(txPage + 1)}
+                      disabled={txPage === txTotalPages}
+                      className="rounded-full"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ========================================== */}
+        {/* TAB 4 CONTENT: PESANAN B2B INDUSTRI */}
+        {/* ========================================== */}
+        {activeTab === "b2b" && (
+          <div className="admin-card space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <div className="bg-card text-card-foreground rounded-2xl border border-border shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-sky-500" />
+                  <h2 className="font-heading font-bold text-lg text-foreground">
+                    Pengajuan Pembelian Industri B2B
+                  </h2>
+                </div>
+                <Button variant="outline" size="sm" onClick={fetchB2bRequests} className="text-xs font-bold">
+                  Refresh Data
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mb-6">
+                Daftar pengajuan pembelian & penjemputan sampah daur ulang skala bulk dari mitra industri daur ulang.
+              </p>
+
+              {b2bRequests.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground text-sm">
+                  Belum ada pengajuan pembelian B2B dari industri.
+                </div>
+              ) : (
+                <div className="divide-y divide-border">
+                  {b2bRequests.map((reqItem) => (
+                    <div key={reqItem.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-foreground">{reqItem.buyer_name}</span>
+                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                            reqItem.status === 'APPROVED' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                          }`}>
+                            {reqItem.status === 'APPROVED' ? 'Disetujui Admin' : 'Menunggu Persetujuan'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Kategori: <strong className="text-foreground">{reqItem.category_name}</strong> · Target: <strong className="text-primary">{reqItem.target_weight_kg} kg</strong>
+                        </p>
+                        {reqItem.notes && (
+                          <p className="text-xs text-foreground italic">Catatan: {reqItem.notes}</p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground">
+                          Dikirim pada: {new Date(reqItem.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+
+                      {reqItem.status !== 'APPROVED' ? (
+                        <Button
+                          size="sm"
+                          onClick={() => handleApproveB2b(reqItem.id)}
+                          disabled={b2bApproving === reqItem.id}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-1.5 text-xs rounded-xl"
+                        >
+                          {b2bApproving === reqItem.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                          Setujui & Process Order
+                        </Button>
+                      ) : (
+                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 text-center">
+                           Pesanan Disetujui
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {/* ========================================== */}
+        {/* TAB 5 CONTENT: KELOLA PRODUK */}
+        {/* ========================================== */}
+        {activeTab === "produk" && (
+          <ProductTab token={token || ""} />
+        )}
+      </main>
+    </div>
+  );
+}
