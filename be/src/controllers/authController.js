@@ -25,26 +25,21 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    // Buat user (belum terverifikasi)
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password_hash,
-        role: role || 'CITIZEN',
-        is_verified: false,
-      },
-    });
-
     // Generate dan kirim OTP
     const otpCode = generateOtp();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 menit
+
+    // Hapus OTP lama jika ada
+    await prisma.otp.deleteMany({ where: { email } });
 
     await prisma.otp.create({
       data: {
         email,
         otp_code: otpCode,
         expires_at: expiresAt,
+        pending_name: name,
+        pending_password_hash: password_hash,
+        pending_role: role || 'CITIZEN',
       },
     });
 
@@ -56,7 +51,7 @@ const register = async (req, res) => {
       console.error('Error sending OTP:', err);
     }
 
-    const otpPayload = buildOtpPayload({ email: newUser.email });
+    const otpPayload = buildOtpPayload({ email });
     const message = emailError
       ? 'Registrasi berhasil, namun email verifikasi gagal dikirim. Silakan coba lagi nanti.'
       : 'Registrasi berhasil. Silakan cek email Anda untuk kode OTP.';
@@ -64,7 +59,7 @@ const register = async (req, res) => {
     res.status(201).json({
       success: true,
       message,
-      data: { ...otpPayload, email: newUser.email },
+      data: { ...otpPayload, email },
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -89,11 +84,30 @@ const verifyOtp = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Kode OTP sudah kedaluwarsa' });
     }
 
-    // Update user sebagai terverifikasi
-    const user = await prisma.user.update({
-      where: { email },
-      data: { is_verified: true },
-    });
+    // Cek apakah user sudah ada di database utama
+    let user = await prisma.user.findUnique({ where: { email } });
+
+    if (user) {
+      // Update user sebagai terverifikasi (jika sebelumnya false)
+      user = await prisma.user.update({
+        where: { email },
+        data: { is_verified: true },
+      });
+    } else {
+      // Buat user baru dari data pending di OTP
+      if (!otpRecord.pending_name || !otpRecord.pending_password_hash) {
+        return res.status(400).json({ success: false, message: 'Data registrasi tidak lengkap, silakan daftar ulang' });
+      }
+      user = await prisma.user.create({
+        data: {
+          name: otpRecord.pending_name,
+          email: otpRecord.email,
+          password_hash: otpRecord.pending_password_hash,
+          role: otpRecord.pending_role || 'CITIZEN',
+          is_verified: true,
+        },
+      });
+    }
 
     // Generate JWT
     const token = jwt.sign(

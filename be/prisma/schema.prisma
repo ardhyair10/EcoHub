@@ -66,6 +66,11 @@ model Otp {
   expires_at DateTime
   created_at DateTime @default(now())
 
+  // Pending registration data
+  pending_name          String?
+  pending_password_hash String?
+  pending_role          Role?
+
   @@index([email])
 }
 
