@@ -121,7 +121,7 @@ export default function Home() {
                 <Button variant="ghost" className="hidden sm:flex text-base font-semibold hover:bg-slate-100 dark:hover:bg-slate-800">Masuk</Button>
               </Link>
               <Link href="/register">
-                <Button className="bg-primary hover:bg-primary/90 text-white shadow-sm shadow-primary/20 text-base font-semibold px-6 h-11 rounded-full">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm shadow-primary/20 text-base font-semibold px-6 h-11 rounded-full">
                   Daftar Sekarang
                 </Button>
               </Link>

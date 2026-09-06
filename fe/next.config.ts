@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  allowedDevOrigins: ['f54c61c6c349e159-114-8-199-218.serveousercontent.com'],
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['f54c61c6c349e159-114-8-199-218.serveousercontent.com']
+    }
+  }
 };
 
 export default nextConfig;

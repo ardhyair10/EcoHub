@@ -179,7 +179,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               )}
               
               {product.eco_badge_desc && (
-                <div className="absolute top-4 left-4 bg-primary text-white text-sm font-semibold px-4 py-2 rounded-full shadow-md flex items-center gap-2">
+                <div className="absolute top-4 left-4 bg-primary text-primary-foreground text-sm font-semibold px-4 py-2 rounded-full shadow-md flex items-center gap-2">
                   <Leaf className="w-4 h-4" />
                   {product.eco_badge_desc}
                 </div>

@@ -173,7 +173,7 @@ export default function MarketplacePage() {
                     )}
                     
                     {product.eco_badge_desc && (
-                      <div className="absolute top-3 left-3 bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
+                      <div className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
                         <Leaf className="w-3 h-3" />
                         {product.eco_badge_desc}
                       </div>
