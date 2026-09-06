@@ -413,14 +413,14 @@ export default function HistoryPage() {
                     {/* Right Section: Admin, Notes, Photo */}
                     <div className="flex flex-col items-start md:items-end gap-3 md:w-64 shrink-0">
                       {transaction.admin && (
-                        <div className="flex items-center gap-2 text-sm text-foreground dark:text-foreground w-full justify-start md:justify-end bg-slate-50  px-3 py-2 rounded-xl">
+                        <div className="flex items-center gap-2 text-sm text-foreground dark:text-foreground w-full justify-start md:justify-end bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl">
                           <User className="h-4 w-4 text-foreground" />
                           <span className="truncate">Admin: {transaction.admin.name}</span>
                         </div>
                       )}
                       
                       {transaction.notes && (
-                        <div className="text-sm text-foreground dark:text-foreground w-full text-left md:text-right italic bg-slate-50  px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                        <div className="text-sm text-foreground dark:text-foreground w-full text-left md:text-right italic bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800">
                           "{transaction.notes}"
                         </div>
                       )}

@@ -75,12 +75,12 @@ export function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm z-50 overflow-hidden text-left animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
-          <div className="p-4 bg-slate-50  border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
               <h3 className="font-heading font-bold text-sm text-foreground">Notifikasi Aktivitas</h3>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-foreground hover:text-foreground">
+            <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100">
               <X className="h-4 w-4" />
             </button>
           </div>

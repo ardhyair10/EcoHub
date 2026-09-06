@@ -701,7 +701,7 @@ export default function CheckoutPage() {
               </div>
               <div className="space-y-2">
                 <Label>Tandai Lokasi di Peta</Label>
-                <div className="p-1 border rounded-xl bg-slate-50">
+                <div className="p-1 border rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                   <MapPicker 
                     lat={newAddress.lat}
                     lng={newAddress.lng}

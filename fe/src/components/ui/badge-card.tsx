@@ -37,7 +37,7 @@ export function BadgeCard({ icon, name, description, unlocked, progress, target,
       className={`flex items-center gap-4 p-4 rounded-lg border transition-all ${
         unlocked
           ? "bg-accent/5 border-accent/20 shadow-sm"
-          : "bg-slate-50  border-slate-200 dark:border-slate-700"
+          : "bg-slate-50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800"
       }`}
     >
       <div className={`w-12 h-12 flex items-center justify-center rounded-xl text-2xl ${

@@ -67,7 +67,7 @@ export function CartDrawer() {
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 ">
+                <div key={item.id} className="flex gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
                   <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-800">
                     {item.image_url ? (
                       <Image src={item.image_url} alt={item.name} fill className="object-cover" />
@@ -121,7 +121,7 @@ export function CartDrawer() {
         </div>
 
         {items.length > 0 && (
-          <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 ">
+          <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
