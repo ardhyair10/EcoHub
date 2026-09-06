@@ -87,6 +87,15 @@ export default function AdminPage() {
   // --- Tab 2: Daftar Warga State ---
   const [wargaList, setWargaList] = useState<CitizenUser[]>([]);
   const [wargaSearch, setWargaSearch] = useState("");
+  const [wargaSearchInput, setWargaSearchInput] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setWargaSearch(wargaSearchInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [wargaSearchInput]);
+
   const [wargaPage, setWargaPage] = useState(1);
   const [wargaTotalPages, setWargaTotalPages] = useState(1);
   const [wargaLoading, setWargaLoading] = useState(false);
@@ -168,13 +177,12 @@ export default function AdminPage() {
   // ==========================================
   // TAB 1: INPUT SAMPAH LOGIC
   // ==========================================
-  const handleInputSearch = async () => {
-    if (!inputSearchQuery.trim() || inputSearchQuery.trim().length < 2) return;
+  const handleInputSearch = useCallback(async (query: string) => {
+    if (!query.trim() || query.trim().length < 2) return;
     setInputSearching(true);
-    setInputSearchResults([]);
     try {
       const res = await fetch(
-        `${API_URL}/api/users/search?q=${encodeURIComponent(inputSearchQuery)}`,
+        `${API_URL}/api/users/search?q=${encodeURIComponent(query)}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const data = await safeFetchJson(res);
@@ -184,7 +192,18 @@ export default function AdminPage() {
     } finally {
       setInputSearching(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputSearchQuery.trim().length >= 2) {
+        handleInputSearch(inputSearchQuery);
+      } else {
+        setInputSearchResults([]);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [inputSearchQuery, handleInputSearch]);
 
   const handleScan = async (result: any) => {
     if (!result || !result[0]) return;
@@ -262,6 +281,7 @@ export default function AdminPage() {
   // TAB 2: DAFTAR WARGA LOGIC
   // ==========================================
   const fetchWarga = useCallback(async (page = 1, search = wargaSearch) => {
+    console.log("FETCH WARGA CALLED! page:", page, "search:", search);
     if (!token) return;
     setWargaLoading(true);
     try {
@@ -604,10 +624,10 @@ export default function AdminPage() {
                   placeholder="Cari nama / email / QR ID..."
                   value={inputSearchQuery}
                   onChange={(e) => setInputSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleInputSearch()}
+                  onKeyDown={(e) => e.key === "Enter" && handleInputSearch(inputSearchQuery)}
                   className="flex-1"
                 />
-                <Button onClick={handleInputSearch} disabled={inputSearching} className="gap-2 font-bold">
+                <Button onClick={() => handleInputSearch(inputSearchQuery)} disabled={inputSearching} className="gap-2 font-bold">
                   {inputSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
                   Cari
                 </Button>
@@ -808,12 +828,12 @@ export default function AdminPage() {
             <div className="flex gap-2">
               <Input
                 placeholder="Cari nama atau email warga..."
-                value={wargaSearch}
-                onChange={(e) => setWargaSearch(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && fetchWarga(1)}
+                value={wargaSearchInput}
+                onChange={(e) => setWargaSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && fetchWarga(1, wargaSearchInput)}
                 className="max-w-sm"
               />
-              <Button onClick={() => fetchWarga(1)} disabled={wargaLoading} variant="secondary" className="font-bold">
+              <Button onClick={() => fetchWarga(1, wargaSearchInput)} disabled={wargaLoading} variant="secondary" className="font-bold">
                 <Search className="h-4 w-4 mr-2" /> Cari
               </Button>
             </div>

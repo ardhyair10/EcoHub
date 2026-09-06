@@ -108,6 +108,8 @@ export default function DashboardPage() {
           router.push("/login");
           return;
         }
+        localStorage.setItem("user", JSON.stringify(userData.data));
+        
         if (userData.data?.role === "ADMIN_RW" || userData.data?.role === "SUPER_ADMIN") {
           router.push("/admin");
           return;
@@ -117,7 +119,6 @@ export default function DashboardPage() {
           return;
         }
         setUser(userData.data);
-        localStorage.setItem("user", JSON.stringify(userData.data));
 
         const txData = await safeFetchJson(txRes);
         if (txData.success) setTransactions(txData.data.transactions);
@@ -414,33 +415,33 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center mb-6">
-                  <div className="bg-slate-50 border border-slate-100 dark:border-slate-800 rounded-lg p-4 flex flex-col items-center">
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 flex flex-col items-center">
                     <TreePine className="h-5 w-5 text-emerald-500 mb-2 opacity-80" />
-                    <p className="text-2xl font-black text-foreground">
+                    <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
                       <AnimatedCounter value={analytics.impact_equivalents?.trees_saved || 0} decimals={1} />
                     </p>
-                    <p className="text-[11px] text-muted-foreground font-medium mt-1">Pohon Diselamatkan</p>
+                    <p className="text-[11px] text-emerald-600/70 dark:text-emerald-400/70 font-medium mt-1">Pohon Diselamatkan</p>
                   </div>
-                  <div className="bg-slate-50 border border-slate-100 dark:border-slate-800 rounded-lg p-4 flex flex-col items-center">
+                  <div className="bg-sky-500/10 border border-sky-500/20 rounded-lg p-4 flex flex-col items-center">
                     <Wind className="h-5 w-5 text-sky-500 mb-2 opacity-80" />
-                    <p className="text-2xl font-black text-foreground">
+                    <p className="text-2xl font-black text-sky-600 dark:text-sky-400">
                       <AnimatedCounter value={analytics.impact_equivalents?.carbon_saved_kg || 0} decimals={1} prefix="-" suffix=" kg" />
                     </p>
-                    <p className="text-[11px] text-muted-foreground font-medium mt-1">Reduksi Karbon (CO₂)</p>
+                    <p className="text-[11px] text-sky-600/70 dark:text-sky-400/70 font-medium mt-1">Reduksi Karbon (CO₂)</p>
                   </div>
-                  <div className="bg-slate-50 border border-slate-100 dark:border-slate-800 rounded-lg p-4 flex flex-col items-center">
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 flex flex-col items-center">
                     <Droplets className="h-5 w-5 text-blue-500 mb-2 opacity-80" />
-                    <p className="text-2xl font-black text-foreground">
+                    <p className="text-2xl font-black text-blue-600 dark:text-blue-400">
                       <AnimatedCounter value={analytics.impact_equivalents?.plastic_saved_kg || 0} decimals={1} prefix="-" suffix=" kg" />
                     </p>
-                    <p className="text-[11px] text-muted-foreground font-medium mt-1">Plastik Murni Dihemat</p>
+                    <p className="text-[11px] text-blue-600/70 dark:text-blue-400/70 font-medium mt-1">Plastik Murni Dihemat</p>
                   </div>
-                  <div className="bg-slate-50 border border-slate-100 dark:border-slate-800 rounded-lg p-4 flex flex-col items-center">
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex flex-col items-center">
                     <Fuel className="h-5 w-5 text-amber-500 mb-2 opacity-80" />
-                    <p className="text-2xl font-black text-foreground">
+                    <p className="text-2xl font-black text-amber-600 dark:text-amber-400">
                       <AnimatedCounter value={analytics.impact_equivalents?.biofuel_liters || 0} decimals={1} suffix=" L" />
                     </p>
-                    <p className="text-[11px] text-muted-foreground font-medium mt-1">Potensi Biofuel</p>
+                    <p className="text-[11px] text-amber-600/70 dark:text-amber-400/70 font-medium mt-1">Potensi Biofuel</p>
                   </div>
                 </div>
 
