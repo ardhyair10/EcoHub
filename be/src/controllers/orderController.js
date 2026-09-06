@@ -148,9 +148,20 @@ const createBulkOrder = async (req, res) => {
     // Execute everything in a single transaction
     await prisma.$transaction(transactionOperations);
 
+    const totalCost = createdOrdersData.reduce((acc, order) => acc + order.final_price_idr, 0);
+    const shipping = req.body.shipping_cost || 0;
+    const grandTotal = totalCost + shipping;
+
     res.status(201).json({
       success: true,
       message: `Pesanan berhasil! Diskon total ${totalPointsToDeduct} poin diterapkan.`,
+      data: {
+        qris: grandTotal > 0 ? {
+          qr_string: "00020101021226590014COM.GO-JEK.WWW0118936009143000000000000000000",
+          amount: grandTotal,
+          expires_at: new Date(Date.now() + 15 * 60000).toISOString()
+        } : null
+      }
     });
   } catch (error) {
     console.error('Create bulk order error:', error);
