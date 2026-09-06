@@ -104,5 +104,10 @@ npm run dev
 
 Buka browser Anda dan navigasikan ke `http://localhost:3000` untuk mulai menggunakan EcoHub!
 
+### 🔑 Akun Demo (Admin)
+Untuk masuk dan mencoba fitur Dashboard Admin, Anda dapat menggunakan kredensial berikut:
+- **Email:** `admin@ecohub.id`
+- **Password:** `admin`
+
 ---
 *Dibuat untuk bumi yang lebih hijau.* 🌍
