@@ -7,9 +7,8 @@ const generateOtp = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit OTP
 };
 
-const buildOtpPayload = ({ email, otpCode, requireOtp = true }) => ({
+const buildOtpPayload = ({ email, requireOtp = true }) => ({
   email,
-  otp_code: otpCode,
   require_otp: requireOtp,
 });
 
@@ -57,9 +56,9 @@ const register = async (req, res) => {
       console.error('Error sending OTP:', err);
     }
 
-    const otpPayload = buildOtpPayload({ email: newUser.email, otpCode });
+    const otpPayload = buildOtpPayload({ email: newUser.email });
     const message = emailError
-      ? `Registrasi berhasil. Email verifikasi gagal dikirim. Gunakan kode OTP berikut untuk melanjutkan: ${otpCode}`
+      ? 'Registrasi berhasil, namun email verifikasi gagal dikirim. Silakan coba lagi nanti.'
       : 'Registrasi berhasil. Silakan cek email Anda untuk kode OTP.';
 
     res.status(201).json({
@@ -151,9 +150,9 @@ const login = async (req, res) => {
         console.error('Error sending OTP:', err);
       }
 
-      const otpPayload = buildOtpPayload({ email, otpCode });
+      const otpPayload = buildOtpPayload({ email });
       const message = emailError
-        ? `Akun belum terverifikasi. Email OTP gagal dikirim. Gunakan kode OTP berikut untuk melanjutkan: ${otpCode}`
+        ? 'Akun belum terverifikasi. Email OTP gagal dikirim. Silakan coba lagi.'
         : 'Akun belum terverifikasi. Kami telah mengirimkan OTP baru ke email Anda.';
 
       return res.status(403).json({
@@ -214,9 +213,7 @@ const forgotPassword = async (req, res) => {
       // Fallback for demo purposes if email fails, usually you'd return an error
       return res.status(200).json({ 
         success: true, 
-        message: 'Jika email terdaftar, OTP telah dikirimkan.',
-        // IN PRODUCTION, DO NOT SEND OTP IN RESPONSE. This is just in case SMTP fails during development.
-        data: { fallback_otp: otpCode } 
+        message: 'Jika email terdaftar, OTP telah dikirimkan.'
       });
     }
 
